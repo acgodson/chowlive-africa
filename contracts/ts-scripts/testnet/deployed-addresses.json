@@ -1,0 +1,13 @@
+{
+  "chowliveRoom": {
+    "1612": "0xD143c4DBBf168A91263A1dB5e1532c4a1a853Cc5"
+  },
+  "paymentReceiver": {
+    "1": "0x64B4DF263FD3DAEBB13e1799CCE849Cc209aBC61"
+  },
+  "paymentRouter": {
+    "0": "0x6ab84FcA35170Da658521D6b0E1160A1A33E0386"
+  },
+  "erc20s": {},
+  "relationshipsVerified": true
+}

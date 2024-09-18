@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -12,7 +12,8 @@ import "@teleporter/ITeleporterMessenger.sol";
 contract ChowlivePaymentReceiver is CCIPReceiver, Ownable(msg.sender) {
   IERC20 public subscriptionToken;
   address public chowliveRoomContract;
-  ITeleporterMessenger public teleporter;
+  ITeleporterMessenger public teleporter =
+    ITeleporterMessenger(address(0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf));
 
   event PaymentReceived(address user, uint256 roomId, uint256 amount);
   event CrossChainPaymentReceived(uint64 sourceChainSelector, address user, uint256 roomId, uint256 amount);
@@ -24,13 +25,12 @@ contract ChowlivePaymentReceiver is CCIPReceiver, Ownable(msg.sender) {
   ) CCIPReceiver(_ccipRouter) {
     subscriptionToken = IERC20(_subscriptionToken);
     chowliveRoomContract = _chowliveRoomContract;
-    teleporter = ITeleporterMessenger(address(0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf));
   }
 
-  function receivePayment(uint256 roomId, uint256 amount) external {
+  function receivePayment(address user, uint256 roomId, uint256 amount) external {
     require(subscriptionToken.transferFrom(msg.sender, address(this), amount), "Payment transfer failed");
-    emit PaymentReceived(msg.sender, roomId, amount);
-    _forwardSubscriptionUpdate(msg.sender, roomId, amount);
+    emit PaymentReceived(user, roomId, amount);
+    _forwardSubscriptionUpdate(user, roomId, amount);
   }
 
   function _ccipReceive(Client.Any2EVMMessage memory message) internal override {
@@ -42,25 +42,25 @@ contract ChowlivePaymentReceiver is CCIPReceiver, Ownable(msg.sender) {
     require(receivedToken == address(subscriptionToken), "Incorrect token received");
 
     (address user, uint256 roomId) = abi.decode(message.data, (address, uint256));
+
     emit CrossChainPaymentReceived(message.sourceChainSelector, user, roomId, receivedAmount);
     _forwardSubscriptionUpdate(user, roomId, receivedAmount);
   }
 
+  //TODO: remember to send AVAX token to this paymentReceiver to fund the teleporter message
   function _forwardSubscriptionUpdate(address user, uint256 roomId, uint256 amount) internal {
-    bytes memory message = abi.encode(
-      "updateSubscription(address,uint256,uint256,address)",
-      user,
-      roomId,
-      amount,
-      address(subscriptionToken)
-    );
+    bytes memory message = abi.encode(user, roomId, amount, address(subscriptionToken));
+
+    address[] memory relayers = new address[](1);
+    relayers[0] = 0x436F6B9cED56c59759De0B599E2E057cC65eE24D;
+
     teleporter.sendCrossChainMessage(
       TeleporterMessageInput({
-        destinationBlockchainID: 0x1a5e1cba4b3ebcfc4b668d2642d152adcd4bb49aa556765720ca737f09468e6e, // Intersect L1 Testnet
+        destinationBlockchainID: 0x1a5e1cba4b3ebcfc4b668d2642d152adcd4bb49aa556765720ca737f09468e6e,
         destinationAddress: chowliveRoomContract,
         feeInfo: TeleporterFeeInfo({feeTokenAddress: address(0), amount: 0}),
         requiredGasLimit: 100000,
-        allowedRelayerAddresses: new address[](0),
+        allowedRelayerAddresses: relayers,
         message: message
       })
     );
@@ -73,13 +73,7 @@ contract ChowlivePaymentReceiver is CCIPReceiver, Ownable(msg.sender) {
   }
 
   // Update contract addresses
-  function updateAddresses(
-    address _subscriptionToken,
-    address _chowliveRoomContract,
-    address _teleporterAddress
-  ) external onlyOwner {
-    subscriptionToken = IERC20(_subscriptionToken);
+  function updateAddresses(address _chowliveRoomContract) external onlyOwner {
     chowliveRoomContract = _chowliveRoomContract;
-    teleporter = ITeleporterMessenger(_teleporterAddress);
   }
 }

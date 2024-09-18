@@ -1,10 +1,13 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract ChowliveRoom is ERC721, Ownable(msg.sender) {
+import "@teleporter/ITeleporterMessenger.sol";
+import "@teleporter/ITeleporterReceiver.sol";
+
+contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
   struct Room {
     uint256 id;
     uint256 subscriptionFee;
@@ -14,7 +17,7 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender) {
 
   uint256 public roomCreationFee;
   uint256 public constant SUBSCRIPTION_PERIOD = 30 days;
-  uint256 public nextRoomId;
+  uint256 public lastRoomID;
   address public paymentReceiverContract;
 
   mapping(uint256 => Room) public rooms;
@@ -25,6 +28,9 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender) {
   event SubscriptionUpdated(address indexed user, uint256 indexed roomId, uint256 expirationTimestamp);
   event SubscriptionCancelled(address indexed user, uint256 indexed roomId);
 
+  ITeleporterMessenger public messenger =
+    ITeleporterMessenger(address(0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf));
+
   constructor(uint256 _roomCreationFee) ERC721("ChowliveRoom", "CHOW") {
     roomCreationFee = _roomCreationFee;
   }
@@ -33,18 +39,25 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender) {
     paymentReceiverContract = _paymentReceiverContract;
   }
 
-  function createRoom(bool isPublic, uint256 subscriptionFee, address subscriptionToken) external payable {
+  function createRoom(
+    bool isPublic,
+    uint256 subscriptionFee,
+    address subscriptionToken
+  ) external payable returns (uint256) {
     require(msg.value >= roomCreationFee, "Insufficient PEARL sent");
 
     if (isPublic) {
       require(subscriptionFee == 0, "Public rooms must have no subscription fee");
       require(subscriptionToken == address(0), "Public rooms must have no subscription token");
-    } else {
-      require(subscriptionFee > 0, "Private rooms must have a subscription fee");
-      require(subscriptionToken != address(0), "Private rooms must have a valid subscription token");
     }
 
-    uint256 roomId = nextRoomId++;
+    // else {
+    //   require(subscriptionFee > 0, "Private rooms must have a subscription fee");
+    //   require(subscriptionToken != address(0), "Private rooms must have a valid subscription token");
+    // }
+
+    uint256 roomId = ++lastRoomID;
+    // lastRoomID++;
     _mint(msg.sender, roomId);
 
     rooms[roomId] = Room({
@@ -63,6 +76,19 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender) {
     if (msg.value > roomCreationFee) {
       payable(msg.sender).transfer(msg.value - roomCreationFee);
     }
+
+    return roomId;
+  }
+
+  function receiveTeleporterMessage(bytes32, address, bytes calldata message) external {
+    // Decode the message
+    (address user, uint256 roomId, uint256 amount, address tokenReceived) = abi.decode(
+      message,
+      (address, uint256, uint256, address)
+    );
+
+    // Call the updateSubscription function
+    updateSubscription(user, roomId, amount, tokenReceived);
   }
 
   function updateSubscription(
@@ -70,10 +96,7 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender) {
     uint256 roomId,
     uint256 amountReceived,
     address tokenReceived
-  ) external {
-    // TODO: might change this to the ccip router address
-    require(msg.sender == paymentReceiverContract, "Only payment receiver can update subscriptions");
-
+  ) internal {
     Room memory room = rooms[roomId];
     require(amountReceived == room.subscriptionFee, "Incorrect subscription fee amount");
     require(tokenReceived == room.subscriptionToken, "Incorrect subscription token");
