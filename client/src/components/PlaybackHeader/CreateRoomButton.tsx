@@ -41,25 +41,23 @@ export default function CreateRoomButton() {
   const onCreateRoom = handleSubmit(async ({ name, visibility, price }) => {
     if (!user || !profile) return;
 
-    alert(visibility);
-    return;
     setIsCreatingRoom(true);
     setError(null);
 
-    try {
-      const room = await createRoom({
-        name,
-        isPublic: visibility === 'public',
-        creator_id: profile.id,
-      });
+    // try {
+    //   const room = await createRoom({
+    //     name,
+    //     isPublic: visibility === 'public',
+    //     creator_id: profile.id,
+    //   });
 
-      if (room) router.push(`/rooms/${room.slug}`);
-      closeModal();
-    } catch (err) {
-      setError('Failed to create room. Please try again.');
-    } finally {
-      setIsCreatingRoom(false);
-    }
+    //   if (room) router.push(`/rooms/${room.slug}`);
+    //   closeModal();
+    // } catch (err) {
+    //   setError('Failed to create room. Please try again.');
+    // } finally {
+    //   setIsCreatingRoom(false);
+    // }
   });
 
   const openModal = () => setIsRoomCreationModalOpen(true);
@@ -71,9 +69,10 @@ export default function CreateRoomButton() {
   return (
     <>
       <Button
-        className='bg-[#CB302B] hover:bg-[#A52521] text-white'
+        className='bg-black border-2 text-white'
         onClick={openModal}
         disabled={isCreatingRoom}
+        variant={'outline'}
       >
         <FiPlus className='mr-2' />
         Create Room

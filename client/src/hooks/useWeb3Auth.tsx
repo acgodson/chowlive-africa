@@ -124,6 +124,7 @@ export const useWeb3Auth = (user: User | null) => {
     const rpc = new RPC(web3auth?.provider);
     const userAccount = await rpc.getAccounts();
     console.log(userAccount);
+    return userAccount;
   };
 
   const getBalance = async () => {

@@ -7,26 +7,12 @@ import React, {
   useState,
 } from 'react';
 import crypto from 'crypto';
-import { getAuth, signInWithCustomToken, User } from 'firebase/auth';
-import Cookies from 'js-cookie';
+import { User } from 'firebase/auth';
 import { useRouter } from 'next/router';
-import {
-  WALLET_ADAPTERS,
-  CHAIN_NAMESPACES,
-  IProvider,
-  WEB3AUTH_NETWORK,
-  UX_MODE,
-} from '@web3auth/base';
-import { Web3AuthNoModal } from '@web3auth/no-modal';
-import { OpenloginAdapter, OpenloginUserInfo } from '@web3auth/openlogin-adapter';
-import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
-import RPC from '../../util/env.viem';
-import { FIREBASE_CONFIG, initializeFirebase } from '@/util/firebase';
+import { OpenloginUserInfo } from '@web3auth/openlogin-adapter';
+import { FIREBASE_CONFIG } from '@/util/firebase';
 import { useFirebaseAuth } from 'src/hooks/firebase/useFirebaseAuth';
 import { useWeb3Auth } from 'src/hooks/useWeb3Auth';
-
-const clientId =
-  'BFvFm-FPMxHmWGS33QbfrYe7-5mDOftplGzkM5y6eXRgkS6m9rkgVohkc_W2t5pVicZP2niXu3jJoI97RkWZrXw';
 
 type AuthContextType =
   | {
@@ -64,6 +50,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     signMessage,
     sendTransaction,
   } = useWeb3Auth(user);
+  const [address, setAddress] = useState<any | null>(null);
 
   const signIn = useCallback(() => {
     const width = 450;
@@ -118,10 +105,18 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     [authState]
   );
 
-
   useEffect(() => {
-    console.log('web3 user', web3User);
-  }, [web3User]);
+    const fetchAccount = async () => {
+      const x = await getAccounts();
+      if (x && x.length > 0) {
+        console.log('logged in account', x);
+        setAddress(x[0]);
+      }
+    };
+    if (web3User && !address) {
+      fetchAccount();
+    }
+  }, [web3User, address]);
 
   useEffect(() => {
     const { code, state } = router.query;
@@ -136,6 +131,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         isAuthenticated: !!user,
         isSessionLoading: isSessionLoading,
         user,
+        address,
         web3User,
         loggedIn,
         signIn,
