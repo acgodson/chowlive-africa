@@ -6,16 +6,24 @@ import { truncateAddress } from '@/util/index';
 
 const networks = [
   { id: 'sepolia', name: 'Sepolia', chainId: '0xaa36a7', nativeCurrency: 'ETH' },
-  { id: 'avalanche', name: 'Avalanche C-Chain', chainId: '0xa86a', nativeCurrency: 'AVAX' },
+  { id: 'avalanche', name: 'Avalanche Fuji Testnet', chainId: '0xa869', nativeCurrency: 'AVAX' },
+  // { id: 'intersect', name: 'Intersect Testnet', chainId: '0x64c', nativeCurrency: 'Pearl' },
 ];
 
 const AccountProfile = () => {
   const { theme } = useTheme();
-  const { web3auth, web3User, getBalance, address } = useAuthContext();
+  const {
+    web3auth,
+    web3User,
+    getBalance,
+    address,
+    switchNetwork,
+    currentChainConfig,
+    nativeBalance,
+  } = useAuthContext();
   const [selectedNetwork, setSelectedNetwork] = useState(networks[1]);
   const [chowLiveBalance, setChowLiveBalance] = useState('0');
   const [pearlBalance, setPearlBalance] = useState('0');
-  const [nativeBalance, setNativeBalance] = useState('0');
   const [creatorEarnings, setCreatorEarnings] = useState('0');
   const [walletChowBalance, setWalletChowBalance] = useState('0');
   const [copied, setCopied] = useState(false);
@@ -23,20 +31,21 @@ const AccountProfile = () => {
   useEffect(() => {
     if (web3auth && web3auth.provider) {
       // TODO: Fetch balances here
-      // This is a placeholder
+      // This  are placeholder for after values
       setChowLiveBalance('10.5');
       setPearlBalance('100');
-      setNativeBalance('1.5');
       setCreatorEarnings('5.25');
       setWalletChowBalance('2.75');
     }
   }, [web3auth, selectedNetwork]);
 
-  const handleNetworkChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleNetworkChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const network = networks.find((n) => n.id === e.target.value);
     if (network) {
       setSelectedNetwork(network);
-      // Implement network switching logic here
+      await switchNetwork(network.id as 'sepolia' | 'avalanche' | 'intersect');
+
+      // TODO: Implement network switching logic here for changing balances and co
     }
   };
 
@@ -60,7 +69,7 @@ const AccountProfile = () => {
         {/* Wallet Address Card */}
         <div className='bg-white dark:bg-[#1E2128] rounded-lg p-6 flex-1 shadow-lg'>
           <div className='flex -flex-row justify-between items-center'>
-            <h3 className='text-xl font-semibold mb-4 text-[#541413] dark:text-[#E6D5C0]'>
+            <h3 className='text-xl font-regular mb-4 text-[#541413] dark:text-[#E6D5C0]'>
               Wallet Address
             </h3>
             <p className='text-lg font-semibold mb-4 opacity-75'>
@@ -85,7 +94,7 @@ const AccountProfile = () => {
               Token Balance
               <span className='text-sm font-lighter opacity-50'> {selectedNetwork.name}</span>
             </h4>
-            <p className='text-2xl font-bold text-[#541413] dark:text-[#E6D5C0]'>
+            <p className='text-2xl font-semibold text-[#541413] dark:text-[#E6D5C0]'>
               {walletChowBalance} CHOW{' '}
               <span className='text-sm font-lighter opacity-50'> (CCIPBnM)</span>
             </p>
@@ -98,7 +107,7 @@ const AccountProfile = () => {
 
         {/* ChowLive Balances Card */}
         <div className='bg-white dark:bg-[#1E2128] rounded-lg p-6 flex-1 shadow-lg'>
-          <h3 className='text-xl font-semibold mb-4 text-[#541413] dark:text-[#E6D5C0]'>
+          <h3 className='text-xl font-regular mb-4 text-[#541413] dark:text-[#E6D5C0]'>
             ChowLive Tracker
           </h3>
           <div className='space-y-4'>
@@ -106,7 +115,7 @@ const AccountProfile = () => {
               <h4 className='font-medium text-[#CB302B] dark:text-[#FF8080]'>
                 Creator Earnings <span className='text-sm font-lighter opacity-50'>Avalanche </span>
               </h4>
-              <p className='text-2xl font-bold text-[#541413] dark:text-[#E6D5C0]'>
+              <p className='text-2xl font-semibold text-[#541413] dark:text-[#E6D5C0]'>
                 {creatorEarnings} CHOW{' '}
                 <span className='text-sm font-lighter opacity-50'> (CCIPBnM)</span>
               </p>

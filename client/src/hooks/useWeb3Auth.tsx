@@ -9,30 +9,54 @@ import { User } from 'firebase/auth';
 const clientId =
   'BFvFm-FPMxHmWGS33QbfrYe7-5mDOftplGzkM5y6eXRgkS6m9rkgVohkc_W2t5pVicZP2niXu3jJoI97RkWZrXw';
 
+const chainConfigs = {
+  sepolia: {
+    chainNamespace: CHAIN_NAMESPACES.EIP155,
+    chainId: '0xaa36a7',
+    rpcTarget: 'https://eth-sepolia.g.alchemy.com/v2/PB4BbHeft6sndMHQG464LiXM1jl4n29m',
+    displayName: 'Sepolia Testnet',
+    blockExplorerUrl: 'https://https://sepolia.etherscan.io',
+    ticker: 'ETH',
+    tickerName: 'Ethereum',
+  },
+  avalanche: {
+    chainNamespace: CHAIN_NAMESPACES.EIP155,
+    chainId: '0xa869',
+    rpcTarget: 'https://api.avax-test.network/ext/bc/C/rpc',
+    displayName: 'Avalanche Fuji Testnet',
+    blockExplorerUrl: 'https://testnet.snowtrace.io',
+    ticker: 'AVAX',
+    tickerName: 'Avalanche',
+  },
+  intersect: {
+    chainNamespace: CHAIN_NAMESPACES.EIP155,
+    chainId: '0x64c',
+    rpcTarget: 'https://subnets.avax.network/pearl/testnet/rpc',
+    displayName: 'Intersect Testnet',
+    blockExplorerUrl: 'https://subnets-test.avax.network/intersect',
+    ticker: 'Pearl',
+    tickerName: 'Pearl',
+  },
+};
+
 export const useWeb3Auth = (user: User | null) => {
   const [web3auth, setWeb3auth] = useState<Web3AuthNoModal | null>(null);
   const [web3User, setWeb3User] = useState<Partial<OpenloginUserInfo> | null>(null);
   const [loggedIn, setLoggedIn] = useState(false);
+  const [currentChainConfig, setCurrentChainConfig] = useState(chainConfigs.avalanche);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
     const initWeb3Auth = async () => {
       try {
-        const chainConfig = {
-          chainNamespace: CHAIN_NAMESPACES.EIP155,
-          chainId: '0x64c',
-          rpcTarget: 'https://subnets.avax.network/pearl/testnet/rpc',
-          displayName: 'Intersect Testnet',
-          blockExplorerUrl: 'https://subnets-test.avax.network/intersect/',
-          ticker: 'Pearl',
-          tickerName: 'Pearl',
-        };
         const privateKeyProvider = new EthereumPrivateKeyProvider({
-          config: { chainConfig },
+          config: { chainConfig: currentChainConfig },
         });
 
         const web3authInstance = new Web3AuthNoModal({
           clientId,
           web3AuthNetwork: WEB3AUTH_NETWORK.SAPPHIRE_DEVNET,
+          chainConfig: currentChainConfig,
           privateKeyProvider,
         });
 
@@ -55,6 +79,8 @@ export const useWeb3Auth = (user: User | null) => {
         await web3authInstance.init();
         if (web3authInstance.connected) {
           console.log('web3auth connected');
+          console.log('connected provider', web3authInstance?.provider);
+          setWeb3auth(web3authInstance);
           setLoggedIn(true);
         }
       } catch (error) {
@@ -62,8 +88,26 @@ export const useWeb3Auth = (user: User | null) => {
       }
     };
 
-    if (!web3auth) initWeb3Auth();
-  }, [web3auth]);
+    initWeb3Auth();
+  }, [currentChainConfig]);
+
+  const switchNetwork = async (networkId: 'sepolia' | 'avalanche' | 'intersect') => {
+    if (!web3auth) {
+      console.log('web3auth not initialized yet');
+      return;
+    }
+    const newChainConfig = chainConfigs[networkId];
+    setCurrentChainConfig(newChainConfig);
+
+    try {
+      await web3auth.addChain(newChainConfig);
+      await web3auth.switchChain({ chainId: newChainConfig.chainId });
+      setFetching(true);
+      console.log(`Switched to ${networkId} network`);
+    } catch (error) {
+      console.error('Error switching network:', error);
+    }
+  };
 
   const connectWeb3Auth = useCallback(async () => {
     if (!user || !web3auth) return;
@@ -135,6 +179,7 @@ export const useWeb3Auth = (user: User | null) => {
     const rpc = new RPC(web3auth?.provider);
     const balance = await rpc.getBalance();
     console.log(balance);
+    return balance;
   };
 
   const signMessage = async () => {
@@ -185,5 +230,9 @@ export const useWeb3Auth = (user: User | null) => {
     getAccounts,
     signMessage,
     sendTransaction,
+    switchNetwork,
+    currentChainConfig,
+    fetching,
+    setFetching,
   };
 };

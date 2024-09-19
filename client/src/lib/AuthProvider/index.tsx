@@ -41,6 +41,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const { user, signOut, isSessionLoading, handleSignIn } = useFirebaseAuth();
   const {
     web3User,
+    web3auth,
     getUserInfo,
     loggedIn,
     authenticateUser,
@@ -49,8 +50,13 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     getAccounts,
     signMessage,
     sendTransaction,
+    switchNetwork,
+    currentChainConfig,
+    fetching,
+    setFetching,
   } = useWeb3Auth(user);
   const [address, setAddress] = useState<any | null>(null);
+  const [nativeBalance, setNativeBalance] = useState<any>(0);
 
   const signIn = useCallback(() => {
     const width = 450;
@@ -59,7 +65,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     const top = window.screen.height / 2 - height / 2;
     const state = crypto.randomBytes(20).toString('hex');
     setAuthState(state);
-    const spotifyAuthUrl = `https://spotify-auth-url`;
+    const spotifyAuthUrl = `https://us-central1-${
+      FIREBASE_CONFIG.projectId
+    }.cloudfunctions.net/redirect?state=${encodeURIComponent(state)}`;
 
     window.open(
       spotifyAuthUrl,
@@ -107,16 +115,42 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 
   useEffect(() => {
     const fetchAccount = async () => {
-      const x = await getAccounts();
-      if (x && x.length > 0) {
-        console.log('logged in account', x);
-        setAddress(x[0]);
+      if (!web3User || !web3auth?.provider) return;
+      try {
+        const accounts = await getAccounts();
+        if (accounts?.length) {
+          console.log('Logged in address:', accounts);
+          setAddress(accounts[0]);
+          const balance = await getBalance();
+          console.log('Logged in account balance:', balance);
+          if (balance) {
+            setNativeBalance(parseFloat(balance).toFixed(3));
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching account:', error);
+      } finally {
+        setFetching(false);
       }
     };
-    if (web3User && !address) {
+
+    if (fetching && currentChainConfig) {
       fetchAccount();
     }
-  }, [web3User, address]);
+  }, [
+    web3User,
+    web3auth,
+    address,
+    fetching,
+    currentChainConfig,
+    setNativeBalance,
+    setAddress,
+    setFetching,
+  ]);
+
+  // useEffect(() => {
+  //   console.log(currentChainConfig);
+  // }, [fetching]);
 
   useEffect(() => {
     const { code, state } = router.query;
@@ -143,6 +177,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         signMessage,
         sendTransaction,
         authenticateUser,
+        switchNetwork,
+        currentChainConfig,
+        nativeBalance,
       }}
     >
       {children}
