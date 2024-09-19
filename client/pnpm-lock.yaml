@@ -5,6 +5,15 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@ethersproject/abi':
+    specifier: 5.7.0
+    version: 5.7.0
+  '@ethersproject/providers':
+    specifier: 5.7.2
+    version: 5.7.2
+  '@ethersproject/wallet':
+    specifier: 5.7.0
+    version: 5.7.0
   '@privy-io/react-auth':
     specifier: ^1.66.2
     version: 1.83.1(@babel/core@7.25.2)(@types/react@18.3.6)(react-dom@18.2.0)(react-is@18.3.1)(react@18.2.0)(typescript@5.6.2)(zod@3.23.8)
@@ -80,6 +89,9 @@ dependencies:
   dayjs:
     specifier: ^1.11.7
     version: 1.11.13
+  ethers:
+    specifier: 5.7.2
+    version: 5.7.2
   firebase:
     specifier: ^10.13.1
     version: 10.13.1

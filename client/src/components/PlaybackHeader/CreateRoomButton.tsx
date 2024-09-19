@@ -38,6 +38,10 @@ export default function CreateRoomButton() {
 
   const visibility = watch('visibility');
 
+  const createRoomonIntersect = async () => {
+
+  }
+
   const onCreateRoom = handleSubmit(async ({ name, visibility, price }) => {
     if (!user || !profile) return;
 
