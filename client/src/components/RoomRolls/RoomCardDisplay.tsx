@@ -51,7 +51,10 @@ const RoomCardDisplay = ({ room }: Props) => {
                  h-[290px] p-4 text-left relative flex flex-col'
       onClick={() => router.push(`/rooms/${room.slug}`)}
     >
-      <h3 className='text-lg font-semibold mb-3 dark:text-gray-100'>{room.name}</h3>
+      <h3 className='text-lg font-semibold dark:text-gray-100'>{room.name}</h3>
+      <h3 className='text-sm font-semibold mb-3 text-[#541413] dark:text-[#E6D5C0] dark:opacity-80'>
+        NFT ID: {room.nftId}
+      </h3>
       {track ? (
         <div className='flex-grow flex flex-col'>
           <img

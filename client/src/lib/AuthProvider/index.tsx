@@ -167,6 +167,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         user,
         address,
         web3User,
+        web3auth,
         loggedIn,
         signIn,
         signOut,

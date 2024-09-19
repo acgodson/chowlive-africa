@@ -17,6 +17,7 @@ const appRouter = router({
     .input(
       z.object({
         name: z.string(),
+        nftId: z.number(),
         isPublic: z.boolean(),
         creator_id: z.string(),
       })
@@ -24,6 +25,7 @@ const appRouter = router({
     .mutation(async ({ input }) => {
       const room = {
         name: input.name,
+        nftId: input.nftId,
         isPublic: input.isPublic,
         creator_id: input.creator_id,
         slug: generateSlug(),
@@ -36,17 +38,22 @@ const appRouter = router({
     }),
 
   fetchRoomUser: publicProcedure
-    .input(z.object({
-      userIds: z.array(z.string()),
-    }))
+    .input(
+      z.object({
+        userIds: z.array(z.string()),
+      })
+    )
     .query(async ({ input }) => {
       const userPromises = input.userIds.map(async (userId) => {
         try {
           const user = await admin.auth().getUser(userId);
-          return [userId, {
-            displayName: user.displayName || null,
-            photoURL: user.photoURL || null,
-          }];
+          return [
+            userId,
+            {
+              displayName: user.displayName || null,
+              photoURL: user.photoURL || null,
+            },
+          ];
         } catch (error) {
           console.error(`Error fetching user ${userId}:`, error);
           return [userId, { displayName: null, photoURL: null }];
@@ -134,10 +141,7 @@ const appRouter = router({
 
       // SONG SKIPPING
       if (shouldSkip) {
-        if (
-          !track ||
-          (song.spotifyUri !== track.spotify_uri)
-        ) {
+        if (!track || song.spotifyUri !== track.spotify_uri) {
           return;
         }
 

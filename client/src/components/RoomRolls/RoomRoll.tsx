@@ -18,7 +18,7 @@ const RoomRoll = ({ isLoading, rooms, title, end }: Props) => {
 
   return (
     <div
-      className={`  mt-18 px-2 sm:px-16 w-full min-h-screen ${
+      className={`  mt-18 px-2 sm:px-16 w-full pb-12 min-h-fit ${
         theme === 'dark'
           ? 'bg-gradient-to-br from-[#1a1c20] to-[#2c313c]'
           : 'bg-gradient-to-br from-[#F5F7FA] to-[#F9FAFB]'

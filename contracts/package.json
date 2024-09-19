@@ -14,8 +14,7 @@
     "dotenv": "^16.4.5",
     "ethers": "5.7.2",
     "ts-node": "^10.9.1",
-    "typechain": "^8.2.0",
-    "viem": "^2.21.2"
+    "typechain": "^8.2.0"
   },
   "devDependencies": {
     "-": "^0.0.1",

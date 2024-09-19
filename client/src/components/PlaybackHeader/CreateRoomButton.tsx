@@ -10,10 +10,13 @@ import { Label } from '../atoms/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '../atoms/dialog';
 import { Button, Input } from '../atoms';
 import { RadioGroup, RadioGroupItem } from '../molecules/radioGroupItems';
+import EthereumRpc from '@/util/env.viem';
+import { getDummyTokensFromNetwork, wait5Seconds } from '@/util/index';
+import { formatEther, parseEther } from 'viem';
 
 export default function CreateRoomButton() {
   const router = useRouter();
-  const { user } = useAuthContext();
+  const { user, web3auth, switchNetwork } = useAuthContext();
   const { profile } = useProfileContext();
 
   const [isCreatingRoom, setIsCreatingRoom] = useState(false);
@@ -38,30 +41,66 @@ export default function CreateRoomButton() {
 
   const visibility = watch('visibility');
 
-  const createRoomonIntersect = async () => {
+  const createRoomOnIntersect = async (isPublic: boolean, price: string | null) => {
+    if (!web3auth || !web3auth.provider) {
+      console.log('Web3Auth not initialized');
+      return;
+    }
+    // switch chain to in tersect
+    await switchNetwork('intersect');
 
-  }
+    await wait5Seconds();
+
+    const rpc = new EthereumRpc(web3auth.provider);
+    const receiver = getDummyTokensFromNetwork(2);
+
+    try {
+      console.log(receiver.ccipBnM, price);
+
+      const { hash, roomId } = await rpc.createRoom(
+        isPublic,
+        !price ? 0 : parseEther(price),
+        receiver.ccipBnM as `0x${string}`
+      );
+
+      console.log('Room created, transaction hash:', hash);
+      // Wait for transaction confirmation and get room ID if needed
+      return roomId;
+    } catch (error) {
+      console.error('Error creating room:', error);
+    }
+  };
 
   const onCreateRoom = handleSubmit(async ({ name, visibility, price }) => {
     if (!user || !profile) return;
 
     setIsCreatingRoom(true);
     setError(null);
+    const isPrivate = visibility === 'private';
+    console.log('room will be private', price);
 
-    // try {
-    //   const room = await createRoom({
-    //     name,
-    //     isPublic: visibility === 'public',
-    //     creator_id: profile.id,
-    //   });
+    try {
+      const roomID = await createRoomOnIntersect(isPrivate, price);
+      console.log('created room is: ', Number(roomID));
+      // save the roomID on the firestore
+      if (!Number(roomID)) {
+        console.log('error creating room, no nft minted');
+        return;
+      }
+      const room = await createRoom({
+        name,
+        nftId: Number(roomID),
+        isPublic: visibility === 'public',
+        creator_id: profile.id,
+      });
 
-    //   if (room) router.push(`/rooms/${room.slug}`);
-    //   closeModal();
-    // } catch (err) {
-    //   setError('Failed to create room. Please try again.');
-    // } finally {
-    //   setIsCreatingRoom(false);
-    // }
+      if (room) router.push(`/rooms/${room.slug}`);
+      closeModal();
+    } catch (err) {
+      setError('Failed to create room. Please try again.');
+    } finally {
+      setIsCreatingRoom(false);
+    }
   });
 
   const openModal = () => setIsRoomCreationModalOpen(true);

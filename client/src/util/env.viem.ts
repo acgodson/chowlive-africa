@@ -5,14 +5,22 @@ import {
   formatEther,
   parseEther,
   Chain,
+  Address,
+  TransactionReceipt,
+  getAddress,
+  encodeFunctionData,
+  http,
+  parseEventLogs,
 } from 'viem';
-import { mainnet, polygonAmoy, sepolia, avalancheFuji } from 'viem/chains';
+import { sepolia, avalancheFuji } from 'viem/chains';
+import chowliveRoomABI from './abis/ChowliveRoom.json';
+import { privateKeyToAccount } from 'viem/accounts';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IProvider } from '@web3auth/base';
 
 const intersect: Chain = {
-  id: 1632,
+  id: 1612,
   name: 'Intersect Testnet',
   nativeCurrency: {
     decimals: 18,
@@ -68,7 +76,6 @@ export default class EthereumRpc {
   constructor(provider: IProvider) {
     this.provider = provider;
     this.chainConfigs = {
-      '0x1': mainnet,
       '0xaa36a7': sepolia,
       '0xa869': avalancheFuji,
       '0x64c': intersect,
@@ -76,7 +83,7 @@ export default class EthereumRpc {
   }
 
   getViewChain(): Chain {
-    return this.chainConfigs[this.provider.chainId] || mainnet;
+    return this.chainConfigs[this.provider.chainId] || avalancheFuji;
   }
 
   async getChainId(): Promise<string> {
@@ -138,46 +145,96 @@ export default class EthereumRpc {
 
       const address = await this.getAccounts();
       const balance = await publicClient.getBalance({ address: address[0] });
-      console.log(balance);
       return formatEther(balance);
     } catch (error) {
       return error as string;
     }
   }
-
-  async signAndSendTransaction(): Promise<any> {
+  async createRoom(
+    isPublic = false,
+    subscriptionFee: bigint | number,
+    tokenAddress: Address
+  ): Promise<{ hash: `0x${string}`; roomId: bigint }> {
     try {
-      const publicClient = createPublicClient({
-        chain: this.getViewChain(),
-        transport: custom(this.provider),
-      });
-
       const walletClient = createWalletClient({
-        chain: this.getViewChain(),
-        transport: custom(this.provider),
+        chain: intersect,
+        transport: http(
+          'https://testnet-pearl-c612f.avax-test.network/ext/bc/CcXVATAg76vM849mrPoTigwp48qhFiN9WCa51DBQXNGkBKZw7/rpc?token=3296aa3e491dd5d366815601cc95be7275cd293486b09fe082619750d7b38587',
+          {
+            batch: true,
+          }
+        ),
       });
 
-      // data for the transaction
-      const destination = '0x40e1c367Eca34250cAF1bc8330E9EddfD403fC56';
-      const amount = parseEther('0.0001');
-      const address = await this.getAccounts();
+      const publicClient = createPublicClient({
+        chain: intersect,
+        transport: http(
+          'https://testnet-pearl-c612f.avax-test.network/ext/bc/CcXVATAg76vM849mrPoTigwp48qhFiN9WCa51DBQXNGkBKZw7/rpc?token=3296aa3e491dd5d366815601cc95be7275cd293486b09fe082619750d7b38587',
+          {
+            batch: true,
+          }
+        ),
+      });
 
-      // Submit transaction to the blockchain
+      const [address] = await this.getAccounts();
+      const privateKey = await this.getPrivateKey();
+
+      console.log('Account Private Key:', privateKey);
+      console.log('Using address:', address);
+
+      const contractAddress = process.env.NEXT_PUBLIC_CHOWLIVE_ROOM as `0x${string}`;
+      console.log('Contract address:', contractAddress);
+
+      const data = encodeFunctionData({
+        abi: chowliveRoomABI.abi,
+        functionName: 'createRoom',
+        args: [false, 0, getAddress(tokenAddress)],
+      });
+
+      const account = privateKeyToAccount(`0x${privateKey}`);
+      const nounce = await publicClient.getTransactionCount({
+        address: address,
+      });
+      console.log('nounce gotten', nounce);
       const hash = await walletClient.sendTransaction({
-        account: address[0],
-        to: destination,
-        value: amount,
+        account: account as unknown as any,
+        to: contractAddress,
+        value: parseEther('1'),
+        data,
+        gas: BigInt(3000000),
       });
-      console.log(hash);
-      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      console.log('Transaction sent, hash:', hash);
+      // Wait for the transaction receipt
+      const receipt: TransactionReceipt = await publicClient.waitForTransactionReceipt({ hash });
 
-      return this.toObject(receipt);
+      const logs = parseEventLogs({
+        abi: chowliveRoomABI.abi,
+        eventName: ['RoomCreated'],
+        logs: receipt.logs,
+      });
+
+      // Find the RoomCreated event log
+      const roomCreatedLog = receipt.logs.find(
+        (log) =>
+          log.topics[0] === '0x9885ea126188c43cc329e45aa9539d799811f0c00053a8f1db943aad926551e2'
+      );
+
+      if (!roomCreatedLog) {
+        throw new Error('RoomCreated event not found in transaction logs');
+      }
+      // Extract roomId from the second topic
+      const roomId = BigInt(roomCreatedLog.topics[1] || '0');
+
+      console.log('emitting event says that this is the id', roomId.toString());
+
+      return { hash, roomId };
     } catch (error) {
-      return error;
+      console.error('Error creating room:', error);
+      throw error;
     }
   }
 
-  async signMessage() {
+  async signMessage(message: string) {
     try {
       const walletClient = createWalletClient({
         chain: this.getViewChain(),
@@ -186,12 +243,11 @@ export default class EthereumRpc {
 
       // data for signing
       const address = await this.getAccounts();
-      const originalMessage = 'YOUR_MESSAGE';
 
       // Sign the message
       const hash = await walletClient.signMessage({
         account: address[0],
-        message: originalMessage,
+        message: message,
       });
 
       console.log(hash);

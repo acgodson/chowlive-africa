@@ -3,6 +3,8 @@ import { useTheme } from 'next-themes';
 import { FiCheck, FiCopy, FiSettings } from 'react-icons/fi';
 import { useAuthContext } from '@/lib/AuthProvider';
 import { truncateAddress } from '@/util/index';
+import { createPublicClient } from 'viem';
+import { useIntersectReadOnly } from 'src/hooks/useIntersectReadOnly';
 
 const networks = [
   { id: 'sepolia', name: 'Sepolia', chainId: '0xaa36a7', nativeCurrency: 'ETH' },
@@ -23,21 +25,20 @@ const AccountProfile = () => {
   } = useAuthContext();
   const [selectedNetwork, setSelectedNetwork] = useState(networks[1]);
   const [chowLiveBalance, setChowLiveBalance] = useState('0');
-  const [pearlBalance, setPearlBalance] = useState('0');
   const [creatorEarnings, setCreatorEarnings] = useState('0');
-  const [walletChowBalance, setWalletChowBalance] = useState('0');
   const [copied, setCopied] = useState(false);
+  const { intersectBalance } = useIntersectReadOnly();
 
-  useEffect(() => {
-    if (web3auth && web3auth.provider) {
-      // TODO: Fetch balances here
-      // This  are placeholder for after values
-      setChowLiveBalance('10.5');
-      setPearlBalance('100');
-      setCreatorEarnings('5.25');
-      setWalletChowBalance('2.75');
-    }
-  }, [web3auth, selectedNetwork]);
+  // useEffect(() => {
+  //   if (web3auth && web3auth.provider) {
+  //     // TODO: Fetch balances here
+  //     // This  are placeholder for after values
+  //     setChowLiveBalance('10.5');
+  //     setPearlBalance('100');
+  //     setCreatorEarnings('5.25');
+  //     setWalletChowBalance('2.75');
+  //   }
+  // }, [web3auth, selectedNetwork]);
 
   const handleNetworkChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const network = networks.find((n) => n.id === e.target.value);
@@ -95,8 +96,7 @@ const AccountProfile = () => {
               <span className='text-sm font-lighter opacity-50'> {selectedNetwork.name}</span>
             </h4>
             <p className='text-2xl font-semibold text-[#541413] dark:text-[#E6D5C0]'>
-              {walletChowBalance} CHOW{' '}
-              <span className='text-sm font-lighter opacity-50'> (CCIPBnM)</span>
+              {0.1} CHOW <span className='text-sm font-lighter opacity-50'> (CCIPBnM)</span>
             </p>
 
             <button className='mt-2 px-4 py-2 bg-gradient-to-r from-[#CB302B] to-[#541413] text-white rounded hover:from-[#541413] hover:to-[#CB302B] transition-all duration-300 ease-in-out'>
@@ -129,7 +129,7 @@ const AccountProfile = () => {
                 Creator Credits <span className='text-sm font-lighter opacity-50'>Intersect </span>
               </h4>
               <p className='text-2xl font-bold text-[#541413] dark:text-[#E6D5C0]'>
-                {creatorEarnings} Pearl
+                {intersectBalance} Pearl
               </p>
               <button className='mt-2 px-4 py-2 bg-gradient-to-r from-[#CB302B] to-[#541413] text-white rounded hover:from-[#541413] hover:to-[#CB302B] transition-all duration-300 ease-in-out'>
                 Faucet

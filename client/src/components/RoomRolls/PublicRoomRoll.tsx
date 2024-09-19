@@ -34,6 +34,7 @@ const PublicRoomRoll = () => {
     fetchRooms();
   }, [db]);
 
+  if (!rooms.length) return null;
   return <RoomRoll rooms={rooms} isLoading={isLoading} title='Public Rooms' end={true} />;
 };
 
