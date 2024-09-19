@@ -1,16 +1,39 @@
 import React, { useState } from 'react';
 import { useTheme } from 'next-themes';
-import { FiMenu, FiX } from 'react-icons/fi';
+import { FiHome, FiUser, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 
 interface AuthHomeLayoutProps {
   children: React.ReactNode;
+  setIndex: any;
 }
 
-const AuthHomeLayout: React.FC<AuthHomeLayoutProps> = ({ children }) => {
+const AuthHomeLayout: React.FC<AuthHomeLayoutProps> = ({ children, setIndex }) => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [activeTab, setActiveTab] = useState(0);
   const { theme } = useTheme();
 
   const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
+
+  const handleTabClick = (index: number) => {
+    setActiveTab(index);
+    setIndex(index);
+  };
+
+  const TabButton = ({ icon, text, index }: { icon: React.ReactNode; text: string; index: number }) => (
+    <button
+      onClick={() => handleTabClick(index)}
+      className={`flex items-center w-full py-3 px-4 ${
+        activeTab === index
+          ? 'bg-[#CB302B] text-white'
+          : theme === 'light'
+          ? 'text-gray-800 hover:bg-[#FCEFDC]'
+          : 'text-white hover:bg-[#541413]'
+      } transition-colors duration-200`}
+    >
+      <div className={`${sidebarOpen ? 'mr-3' : 'mx-auto'}`}>{icon}</div>
+      {sidebarOpen && <span>{text}</span>}
+    </button>
+  );
 
   return (
     <div className='flex h-[calc(100vh-96px)] overflow-hidden'>
@@ -39,12 +62,16 @@ const AuthHomeLayout: React.FC<AuthHomeLayoutProps> = ({ children }) => {
             </h2>
             <button
               onClick={toggleSidebar}
-              className={theme === 'light' ? 'text-gray-800' : 'text-white'}
+              className={`${theme === 'light' ? 'text-gray-800' : 'text-white'} focus:outline-none`}
             >
-              {sidebarOpen ? <FiX size={24} /> : <FiMenu size={24} />}
+              {sidebarOpen ? <FiChevronLeft size={24} /> : <FiChevronRight size={24} />}
             </button>
           </div>
-          {/* Add your sidebar content here */}
+          {/*  sidebar content */}
+          <div className='mt-8'>
+            <TabButton icon={<FiHome size={20} />} text='Rooms' index={0} />
+            <TabButton icon={<FiUser size={20} />} text='My Account' index={1} />
+          </div>
         </div>
       </div>
 
@@ -73,10 +100,14 @@ const AuthHomeLayout: React.FC<AuthHomeLayoutProps> = ({ children }) => {
               onClick={toggleSidebar}
               className={theme === 'light' ? 'text-gray-800' : 'text-white'}
             >
-              <FiX size={24} />
+              <FiChevronLeft size={24} />
             </button>
           </div>
-          {/* Add your sidebar content here */}
+          {/* mobile sidebar content */}
+          <div className='mt-8'>
+            <TabButton icon={<FiHome size={20} />} text='Rooms' index={0} />
+            <TabButton icon={<FiUser size={20} />} text='My Account' index={1} />
+          </div>
         </div>
       </div>
 
@@ -87,7 +118,7 @@ const AuthHomeLayout: React.FC<AuthHomeLayoutProps> = ({ children }) => {
             onClick={toggleSidebar}
             className={`p-2 ${theme === 'light' ? 'text-gray-800' : 'text-white'}`}
           >
-            <FiMenu size={24} />
+            <FiChevronRight size={24} />
           </button>
         </div>
         {children}

@@ -37,7 +37,7 @@ const PlaybackHeaderSongDisplay = ({ song, room }: Props) => {
           </Button>
         )
       ) : (
-        <p className='ml-0 sm:ml-2 md:ml-4 lg:ml-8 font-medium text-lg'>
+        <p className='ml-0 sm:ml-2 md:ml-4 lg:ml-8 font-medium text-lg text-[#541413] dark:text-[#FCEFDC]'>
           Join a room to start listening to music!
         </p>
       )}

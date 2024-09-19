@@ -12,7 +12,7 @@ export default function FullscreenLoader() {
           src={theme === 'light' ? '/logo.svg' : '/logo.svg'}
           height={100}
           width={150}
-          alt='Listen Together logo'
+          alt='Chow-live logo'
         />
       </div>
       <Spinner />

@@ -3,7 +3,7 @@ export const BASE_URL =
     ? 'http://localhost:3000'
     : process.env.VERCEL_ENV === 'preview'
     ? process.env.VERCEL_URL
-    : 'https://www.listentogether.app';
+    : 'https://www.chow-live.vercel.app';
 
 export const buildListenTogetherAPIUrl = (url: string) => `${BASE_URL}${url}`;
 
