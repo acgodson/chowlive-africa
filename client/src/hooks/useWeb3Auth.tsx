@@ -182,26 +182,6 @@ export const useWeb3Auth = (user: User | null) => {
     return balance;
   };
 
-  const signMessage = async () => {
-    if (!web3auth?.provider) {
-      console.log('provider not initialized yet');
-      return;
-    }
-    const rpc = new RPC(web3auth?.provider);
-    const result = await rpc.signMessage();
-    console.log(result);
-  };
-
-  const sendTransaction = async () => {
-    if (!web3auth?.provider) {
-      console.log('provider not initialized yet');
-      return;
-    }
-    const rpc = new RPC(web3auth?.provider);
-    const result = await rpc.signAndSendTransaction();
-    console.log(result);
-  };
-
   useEffect(() => {
     const handleWeb3Auth = async () => {
       if (!web3auth || !user) return;
@@ -228,8 +208,6 @@ export const useWeb3Auth = (user: User | null) => {
     logout,
     getBalance,
     getAccounts,
-    signMessage,
-    sendTransaction,
     switchNetwork,
     currentChainConfig,
     fetching,
