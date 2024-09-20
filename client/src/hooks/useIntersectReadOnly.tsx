@@ -79,8 +79,33 @@ export const useIntersectReadOnly = () => {
     }
   };
 
+  const fetchNFTDetails = async (roomId: number | BigInt) => {
+    if (!address) {
+      return;
+    }
+    try {
+      const client = createPublicClient({
+        chain: intersectTestnet,
+        transport: http(),
+      });
+
+      const data: any = await client.readContract({
+        address: process.env.NEXT_PUBLIC_CHOWLIVE_ROOM as `0x${string}`,
+        abi: chowliveRoomABI.abi,
+        functionName: 'getRoomDetails',
+        args: [roomId],
+      });
+
+      return data;
+    } catch (e) {
+      console.log(e);
+      setFetching(false);
+    }
+  };
+
   return {
     intersectBalance,
     fetchMySubscriptions,
+    fetchNFTDetails,
   };
 };

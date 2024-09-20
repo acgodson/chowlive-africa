@@ -12,7 +12,7 @@ import { Button, Input } from '../atoms';
 import { RadioGroup, RadioGroupItem } from '../molecules/radioGroupItems';
 import EthereumRpc from '@/util/env.viem';
 import { getDummyTokensFromNetwork, wait5Seconds } from '@/util/index';
-import { formatEther, parseEther } from 'viem';
+import { parseEther } from 'viem';
 
 export default function CreateRoomButton() {
   const router = useRouter();

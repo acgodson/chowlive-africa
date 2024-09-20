@@ -14,6 +14,7 @@ import {
 } from 'viem';
 import { sepolia, avalancheFuji } from 'viem/chains';
 import chowliveRoomABI from './abis/ChowliveRoom.json';
+import chowliveRecieverABI from './abis/ChowlivePaymentReceiver.json';
 import { privateKeyToAccount } from 'viem/accounts';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -228,6 +229,49 @@ export default class EthereumRpc {
       console.log('emitting event says that this is the id', roomId.toString());
 
       return { hash, roomId };
+    } catch (error) {
+      console.error('Error creating room:', error);
+      throw error;
+    }
+  }
+  async receivePayment(nftId: number, subscriptionFee: any): Promise<`0x${string}`> {
+    try {
+      const walletClient = createWalletClient({
+        chain: avalancheFuji,
+        transport: custom(this.provider),
+      });
+
+      const publicClient = createPublicClient({
+        chain: avalancheFuji,
+        transport: custom(this.provider),
+      });
+
+      const [address] = await this.getAccounts();
+      const privateKey = await this.getPrivateKey();
+
+      const contractAddress = process.env.NEXT_PUBLIC_CHOWLIVE_RECEIVER as `0x${string}`;
+
+      // Send subnet subscription payment
+      const data = encodeFunctionData({
+        abi: chowliveRecieverABI.abi,
+        functionName: 'receivePayment',
+        args: [address, nftId, subscriptionFee],
+      });
+
+      const account = privateKeyToAccount(`0x${privateKey}`);
+      const nounce = await publicClient.getTransactionCount({
+        address: address,
+      });
+      console.log('nounce gotten', nounce);
+      const hash = await walletClient.sendTransaction({
+        account: account as unknown as any,
+        to: contractAddress,
+        data,
+        gas: BigInt(3000000),
+      });
+      console.log('Transaction sent, hash:', hash);
+
+      return hash;
     } catch (error) {
       console.error('Error creating room:', error);
       throw error;
