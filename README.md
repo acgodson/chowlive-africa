@@ -2,7 +2,7 @@
 
 Synchronized music playback for subscribed users
 
-![flow-chart](<../client/public/Screenshot 2024-09-19 at 19.30.19.png>)
+![flow-chart](<client/public/Screenshot 2024-09-19 at 19.30.19.png>)
 
 ## Key Features
 
