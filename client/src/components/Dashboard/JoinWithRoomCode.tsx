@@ -14,7 +14,8 @@ const JoinWithRoomCode = () => {
   return (
     <div className='flex flex-col items-center justify-center mb-14'>
       <label htmlFor='input-room_code' className='mb-2'>
-        Have an NFT ID? Join a room with it:
+        Have an <span className='dark:text-yellow-300 light: text-yellow-700'> NFT ID?</span> Join a
+        room with it:
       </label>
       <form onSubmit={handleNavigate} className='flex mt-2'>
         <input
