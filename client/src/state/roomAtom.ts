@@ -6,6 +6,7 @@ export const ROOM_EMPTY: Room = {
   id: '',
   name: '',
   slug: '',
+  nftId: 0,
   queuedSongs: [],
   owner_id: '',
   creator_id: '',
