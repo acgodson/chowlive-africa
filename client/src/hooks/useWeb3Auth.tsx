@@ -119,7 +119,7 @@ export const useWeb3Auth = (user: User | null) => {
         extraLoginOptions: {
           id_token: customJWT,
           verifierIdField: 'sub',
-          domain: 'http://localhost:3000',
+          domain: 'https://chowlive.vercel.app',
         },
       });
 
