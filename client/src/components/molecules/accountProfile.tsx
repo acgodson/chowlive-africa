@@ -29,16 +29,7 @@ const AccountProfile = () => {
   const [copied, setCopied] = useState(false);
   const { intersectBalance } = useIntersectReadOnly();
 
-  // useEffect(() => {
-  //   if (web3auth && web3auth.provider) {
-  //     // TODO: Fetch balances here
-  //     // This  are placeholder for after values
-  //     setChowLiveBalance('10.5');
-  //     setPearlBalance('100');
-  //     setCreatorEarnings('5.25');
-  //     setWalletChowBalance('2.75');
-  //   }
-  // }, [web3auth, selectedNetwork]);
+
 
   const handleNetworkChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const network = networks.find((n) => n.id === e.target.value);
@@ -96,7 +87,7 @@ const AccountProfile = () => {
               <span className='text-sm font-lighter opacity-50'> {selectedNetwork.name}</span>
             </h4>
             <p className='text-2xl font-semibold text-[#541413] dark:text-[#E6D5C0]'>
-              {0.1} CHOW <span className='text-sm font-lighter opacity-50'> (CCIPBnM)</span>
+              {0} CHOW <span className='text-sm font-lighter opacity-50'> (CCIPBnM)</span>
             </p>
 
             <button className='mt-2 px-4 py-2 bg-gradient-to-r from-[#CB302B] to-[#541413] text-white rounded hover:from-[#541413] hover:to-[#CB302B] transition-all duration-300 ease-in-out'>
