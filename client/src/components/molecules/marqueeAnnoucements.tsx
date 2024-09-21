@@ -12,7 +12,7 @@ const MarqueeAnnouncement = ({ rooms }: any) => {
               <span className='mx-1 text-gray-400'>|</span>
               <span className='text-yellow-300'>NFT ID {room.nftId}</span>
               <span className='mx-1 text-gray-400'>|</span>
-              <span className='text-blue-300'>{room.pearls} PEARL</span>
+              <span className='text-blue-300'>{room.chow} CHOW</span>
             </span>
           ))}
         </div>
