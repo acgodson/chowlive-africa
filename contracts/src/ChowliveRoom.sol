@@ -1,24 +1,28 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl, IAccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-import "@teleporter/ITeleporterMessenger.sol";
-import "@teleporter/ITeleporterReceiver.sol";
+import {IERC20} from "@chainlink/contracts-ccip/src/v0.8/vendor/openzeppelin-solidity/v4.8.3/contracts/token/ERC20/IERC20.sol";
+import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
+import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 
-contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
+contract ChowliveRoom is ERC721, AccessControl, CCIPReceiver {
+  bytes32 public constant MANAGER_ROLE = keccak256("MANAGER_ROLE");
+
   struct Room {
     uint256 id;
     uint256 subscriptionFee;
     address subscriptionToken;
     bool isPublic;
+    uint256 tokenBalance;
+    uint256 subscriberCount;
   }
 
   uint256 public roomCreationFee;
   uint256 public constant SUBSCRIPTION_PERIOD = 30 days;
   uint256 public lastRoomID;
-  address public paymentReceiverContract;
 
   mapping(uint256 => Room) public rooms;
   mapping(address => uint256[]) private userSubscribedRooms;
@@ -27,16 +31,22 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
   event RoomCreated(uint256 indexed roomId, address indexed creator, bool isPublic);
   event SubscriptionUpdated(address indexed user, uint256 indexed roomId, uint256 expirationTimestamp);
   event SubscriptionCancelled(address indexed user, uint256 indexed roomId);
+  event PaymentReceived(address user, uint256 roomId, uint256 amount);
+  event CrossChainPaymentReceived(uint64 sourceChainSelector, address user, uint256 roomId, uint256 amount);
+  event TokensWithdrawn(uint256 indexed roomId, address token, uint256 amount);
+  event SubscriberCountChanged(uint256 indexed roomId, uint256 newCount);
 
-  ITeleporterMessenger public messenger =
-    ITeleporterMessenger(address(0x253b2784c75e510dD0fF1da844684a1aC0aa5fcf));
-
-  constructor(uint256 _roomCreationFee) ERC721("ChowliveRoom", "CHOW") {
+  constructor(
+    uint256 _roomCreationFee,
+    address _ccipRouter
+  ) ERC721("ChowliveRoom", "CHOW") CCIPReceiver(_ccipRouter) {
     roomCreationFee = _roomCreationFee;
+    _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+    _grantRole(MANAGER_ROLE, msg.sender);
   }
 
-  function setPaymentReceiverContract(address _paymentReceiverContract) external onlyOwner {
-    paymentReceiverContract = _paymentReceiverContract;
+  function getRoomAdminRole(uint256 roomId) public pure returns (bytes32) {
+    return keccak256(abi.encodePacked("ROOM_ADMIN_ROLE", roomId));
   }
 
   function createRoom(
@@ -44,30 +54,28 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
     uint256 subscriptionFee,
     address subscriptionToken
   ) external payable returns (uint256) {
-    require(msg.value >= roomCreationFee, "Insufficient PEARL sent");
+    require(msg.value >= roomCreationFee, "Insufficient ETH sent");
 
     if (isPublic) {
       require(subscriptionFee == 0, "Public rooms must have no subscription fee");
       require(subscriptionToken == address(0), "Public rooms must have no subscription token");
     }
 
-    // else {
-    //   require(subscriptionFee > 0, "Private rooms must have a subscription fee");
-    //   require(subscriptionToken != address(0), "Private rooms must have a valid subscription token");
-    // }
-
     uint256 roomId = ++lastRoomID;
-    // lastRoomID++;
     _mint(msg.sender, roomId);
 
     rooms[roomId] = Room({
       id: roomId,
       subscriptionFee: subscriptionFee,
       subscriptionToken: subscriptionToken,
-      isPublic: isPublic
+      isPublic: isPublic,
+      tokenBalance: 0,
+      subscriberCount: 1
     });
 
-    // Set creator's subscription to forever
+    bytes32 roomAdminRole = getRoomAdminRole(roomId);
+    _grantRole(roomAdminRole, msg.sender);
+
     userSubscriptions[msg.sender][roomId] = type(uint256).max;
     userSubscribedRooms[msg.sender].push(roomId);
 
@@ -80,38 +88,52 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
     return roomId;
   }
 
-  function receiveTeleporterMessage(bytes32, address, bytes calldata message) external {
-    // Decode the message
-    (address user, uint256 roomId, uint256 amount, address tokenReceived) = abi.decode(
-      message,
-      (address, uint256, uint256, address)
-    );
+  function _ccipReceive(Client.Any2EVMMessage memory message) internal override {
+    require(message.destTokenAmounts.length == 1, "Expected 1 token transfer");
 
-    // Call the updateSubscription function
-    updateSubscription(user, roomId, amount, tokenReceived);
+    address receivedToken = message.destTokenAmounts[0].token;
+    uint256 receivedAmount = message.destTokenAmounts[0].amount;
+
+    (address user, uint256 roomId) = abi.decode(message.data, (address, uint256));
+
+    require(receivedToken == rooms[roomId].subscriptionToken, "Incorrect token received");
+    require(receivedAmount == rooms[roomId].subscriptionFee, "Incorrect subscription fee amount");
+
+    rooms[roomId].tokenBalance += receivedAmount;
+
+    emit CrossChainPaymentReceived(message.sourceChainSelector, user, roomId, receivedAmount);
+    _updateSubscription(user, roomId);
   }
 
-  function updateSubscription(
-    address user,
-    uint256 roomId,
-    uint256 amountReceived,
-    address tokenReceived
-  ) internal {
-    Room memory room = rooms[roomId];
-    require(amountReceived == room.subscriptionFee, "Incorrect subscription fee amount");
-    require(tokenReceived == room.subscriptionToken, "Incorrect subscription token");
+  function subscribeToRoom(address user, uint256 roomId) external {
+    Room storage room = rooms[roomId];
+    require(room.id != 0, "Room does not exist");
 
+    if (!room.isPublic && room.subscriptionFee > 0) {
+      IERC20 token = IERC20(room.subscriptionToken);
+      require(token.transferFrom(msg.sender, address(this), room.subscriptionFee), "Payment transfer failed");
+      room.tokenBalance += room.subscriptionFee;
+      emit PaymentReceived(user, roomId, room.subscriptionFee);
+    }
+
+    _updateSubscription(user, roomId);
+  }
+
+  function _updateSubscription(address user, uint256 roomId) internal {
     uint256 currentExpiration = userSubscriptions[user][roomId];
     uint256 newExpiration = block.timestamp > currentExpiration
       ? block.timestamp + SUBSCRIPTION_PERIOD
       : currentExpiration + SUBSCRIPTION_PERIOD;
     userSubscriptions[user][roomId] = newExpiration;
+    Room storage room = rooms[roomId];
 
     if (!_isRoomInUserSubscriptions(user, roomId)) {
       userSubscribedRooms[user].push(roomId);
+      room.subscriberCount++;
     }
 
     emit SubscriptionUpdated(user, roomId, newExpiration);
+    emit SubscriberCountChanged(roomId, room.subscriberCount);
   }
 
   function cancelSubscription(uint256 roomId) external {
@@ -119,7 +141,11 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
 
     userSubscriptions[msg.sender][roomId] = 0;
 
-    // Remove room from user's subscribed rooms
+    Room storage room = rooms[roomId];
+    if (room.subscriberCount > 0) {
+      room.subscriberCount--;
+    }
+
     for (uint i = 0; i < userSubscribedRooms[msg.sender].length; i++) {
       if (userSubscribedRooms[msg.sender][i] == roomId) {
         userSubscribedRooms[msg.sender][i] = userSubscribedRooms[msg.sender][
@@ -131,6 +157,7 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
     }
 
     emit SubscriptionCancelled(msg.sender, roomId);
+    emit SubscriberCountChanged(roomId, room.subscriberCount);
   }
 
   function hasAccess(address user, uint256 roomId) public view returns (bool) {
@@ -154,7 +181,6 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
       }
     }
 
-    // Resize the array to fit only active subscriptions
     assembly {
       mstore(activeRooms, activeCount)
     }
@@ -162,14 +188,29 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
     return activeRooms;
   }
 
-  // Revenue Collection for ChowLive Platform Ownership
-  function withdrawPEARL() external onlyOwner {
+  function withdrawETH() external onlyRole(MANAGER_ROLE) {
     uint256 balance = address(this).balance;
-    require(balance > 0, "No PEARL to withdraw");
-    payable(owner()).transfer(balance);
+    require(balance > 0, "No ETH to withdraw");
+    payable(msg.sender).transfer(balance);
   }
 
-  function updateRoomCreationFee(uint256 newFee) external onlyOwner {
+  function withdrawRoomTokens(uint256 roomId) external {
+    bytes32 roomAdminRole = getRoomAdminRole(roomId);
+    require(hasRole(roomAdminRole, msg.sender), "Caller is not the room admin");
+
+    Room storage room = rooms[roomId];
+    require(room.id != 0, "Room does not exist");
+    require(room.tokenBalance > 0, "No tokens to withdraw");
+
+    IERC20 token = IERC20(room.subscriptionToken);
+    uint256 amount = room.tokenBalance;
+    room.tokenBalance = 0;
+
+    require(token.transfer(msg.sender, amount), "Token transfer failed");
+    emit TokensWithdrawn(roomId, room.subscriptionToken, amount);
+  }
+
+  function updateRoomCreationFee(uint256 newFee) external onlyRole(MANAGER_ROLE) {
     roomCreationFee = newFee;
   }
 
@@ -182,6 +223,11 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
     return rooms[roomId];
   }
 
+  function getSubscriberCount(uint256 roomId) public view returns (uint256) {
+    require(roomExists(roomId), "Room does not exist");
+    return rooms[roomId].subscriberCount;
+  }
+
   function _isRoomInUserSubscriptions(address user, uint256 roomId) internal view returns (bool) {
     for (uint i = 0; i < userSubscribedRooms[user].length; i++) {
       if (userSubscribedRooms[user][i] == roomId) {
@@ -189,5 +235,15 @@ contract ChowliveRoom is ERC721, Ownable(msg.sender), ITeleporterReceiver {
       }
     }
     return false;
+  }
+
+  function supportsInterface(
+    bytes4 interfaceId
+  ) public pure override(ERC721, AccessControl, CCIPReceiver) returns (bool) {
+    return
+      CCIPReceiver.supportsInterface(interfaceId) ||
+      interfaceId == type(IERC721).interfaceId ||
+      interfaceId == type(IAccessControl).interfaceId ||
+      interfaceId == type(IERC165).interfaceId;
   }
 }

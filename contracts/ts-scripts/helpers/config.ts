@@ -1,7 +1,9 @@
-import { Chain } from "viem";
+// config.ts
 
 export enum SupportedNetworks {
+  BASE_SEPOLIA,
   ETHEREUM_SEPOLIA,
+  OPTIMISM_SEPOLIA,
   AVALANCHE_FUJI,
 }
 
@@ -18,6 +20,16 @@ export interface NetworkConfig {
 }
 
 export const networkConfigs: { [key in SupportedNetworks]: NetworkConfig } = {
+  [SupportedNetworks.BASE_SEPOLIA]: {
+    description: "Base Sepolia Testnet",
+    chainSelector: "10344971235874465080",
+    rpc: "https://sepolia.base.org",
+    routerAddress: "0xD3b06cEbF099CE7DA4AcCf578aaebFDBd6e88a93",
+    linkTokenAddress: "0xE4aB69C077896252FAFBD49EFD26B5D171A32410",
+    wrappedNativeAddress: "0x4200000000000000000000000000000000000006",
+    ccipBnMAddress: "0x88A2d74F47a237a62e7A51cdDa67270CE381555e",
+    ccipLnMAddress: "0xA98FA8A008371b9408195e52734b1768c0d1Cb5c",
+  },
   [SupportedNetworks.ETHEREUM_SEPOLIA]: {
     description: "Ethereum Sepolia Testnet",
     chainSelector: "16015286601757825753",
@@ -38,26 +50,16 @@ export const networkConfigs: { [key in SupportedNetworks]: NetworkConfig } = {
     ccipBnMAddress: "0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4",
     ccipLnMAddress: "0x70F5c5C40b873EA597776DA2C21929A8282A3b35",
   },
-};
 
-export const intersectTestnet: Chain = {
-  id: 1612,
-  name: "Intersect Testnet",
-  nativeCurrency: {
-    decimals: 18,
-    name: "Pearl",
-    symbol: "Pearl",
-  },
-  rpcUrls: {
-    default: {
-      http: ["https://subnets.avax.network/pearl/testnet/rpc"],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: "Explorer",
-      url: "https://subnets-test.avax.network/intersect/",
-    },
+  [SupportedNetworks.OPTIMISM_SEPOLIA]: {
+    description: "Optimism Sepolia Testnet",
+    chainSelector: "5224473277236331295",
+    rpc: "https://optimism-sepolia.infura.io/v3/2SYhsNBoKVT0rc90QfGmgHe46j4",
+    routerAddress: "0x114A20A10b43D4115e5aeef7345a1A71d2a60C57",
+    linkTokenAddress: "0xE4aB69C077896252FAFBD49EFD26B5D171A32410",
+    wrappedNativeAddress: "0x4200000000000000000000000000000000000006",
+    ccipBnMAddress: "0x8aF4204e30565DF93352fE8E1De78925F6664dA7",
+    ccipLnMAddress: "0x044a6B4b561af69D2319A2f4be5Ec327a6975D0a",
   },
 };
 
@@ -81,7 +83,6 @@ export function getDummyTokensFromNetwork(network: SupportedNetworks): {
 
 export interface DeployedAddresses {
   chowliveRoom: Record<number, string>;
-  paymentReceiver: Record<number, string>;
   paymentRouter: Record<number, string>;
   erc20s: Record<number, string[]>;
 }

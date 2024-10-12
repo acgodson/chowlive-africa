@@ -1,216 +1,204 @@
-// subnetSubscriptionTest.ts
-
 import {
   SupportedNetworks,
   getDummyTokensFromNetwork,
   getNetworkConfig,
-  intersectTestnet,
 } from "./helpers/config";
+import { baseSepolia } from "viem/chains";
 import {
   getWallet,
   getChowliveRoom,
-  getPaymentReceiver,
   wait,
-  areRelationshipsVerified,
-  setRelationshipsVerified,
   getAccount,
-  waitForFinality,
   requestTokensFromFaucet,
-  getPaymentRouter,
+  loadDeployedAddresses,
 } from "./helpers/utils";
-import {
-  deployChowliveRoom,
-  deployPaymentReceiver,
-  deployPaymentRouter,
-} from "./helpers/deploy";
+import { deployPaymentRouter } from "./helpers/deploy";
 import {
   ChowliveRoom,
-  ChowlivePaymentReceiver as PaymentReceiver,
   ChowlivePaymentRouter as PaymentRouter,
   Mock_Token__factory as ERC20__factory,
 } from "./ethers-contracts";
-
 import { ethers } from "ethers";
+import { bold, green, yellow, blue, red, cyan, magenta } from "colorette";
 
 async function setupEnvironment(
   sourceNetwork: SupportedNetworks,
   targetNetwork: SupportedNetworks
 ) {
-  let chowliveRoom: ChowliveRoom,
-    paymentReceiver: PaymentReceiver,
-    paymentRouter: PaymentRouter;
+  console.log(bold(cyan("\n📦 Setting up environment...")));
 
-  if (!(await areRelationshipsVerified())) {
-    console.log("Relationships not verified. Deploying new contracts...");
+  const deployedAddresses = await loadDeployedAddresses();
+  const chowliveRoomAddress = deployedAddresses.chowliveRoom[baseSepolia.id];
 
-    // Deploy ChowliveRoom on Intersect L1 Testnet
-    chowliveRoom = await deployChowliveRoom(intersectTestnet);
-    // Deploy PaymentReceiver on Avalanche Fuji
-    paymentReceiver = await deployPaymentReceiver(
-      targetNetwork,
-      chowliveRoom.address
+  if (!chowliveRoomAddress) {
+    throw new Error(
+      red(
+        "❌ ChowliveRoom address not found. Please run 'npm run base-test' first."
+      )
     );
-
-    // Deploy PaymentRouter on Ethereum Sepolia
-    paymentRouter = await deployPaymentRouter(
-      sourceNetwork,
-      paymentReceiver.address,
-      targetNetwork
-    );
-
-    // Set up relationships
-    await chowliveRoom
-      .setPaymentReceiverContract(paymentReceiver.address)
-      .then(wait);
-
-    // await paymentReceiver.updateAddresses(chowliveRoom.address).then(wait);
-
-    // Verify relationships
-    console.log("Verifying relationships...");
-    const paymentReceiverAddress = await chowliveRoom.paymentReceiverContract();
-    console.assert(
-      paymentReceiverAddress === paymentReceiver.address,
-      "Payment receiver address mismatch"
-    );
-
-    await setRelationshipsVerified(true);
-    console.log("Setup completed. Relationships verified.");
-  } else {
-    console.log("Relationships already verified. Skipping deployment.");
-    chowliveRoom = await getChowliveRoom(intersectTestnet);
-    paymentReceiver = await getPaymentReceiver(targetNetwork);
-    paymentRouter = await getPaymentRouter(sourceNetwork);
   }
 
-  return { chowliveRoom, paymentReceiver, paymentRouter };
+  console.log(
+    green(
+      `✅ Using existing ChowliveRoom address: ${bold(chowliveRoomAddress)}`
+    )
+  );
+  const chowliveRoom = await getChowliveRoom(baseSepolia as any);
+
+  console.log(blue("\n🚀 Deploying new PaymentRouter..."));
+  const paymentRouter = await deployPaymentRouter(
+    sourceNetwork,
+    chowliveRoomAddress,
+    targetNetwork
+  );
+
+  console.log(
+    green(`✅ PaymentRouter deployed at: ${bold(paymentRouter.address)}`)
+  );
+
+  return { chowliveRoom, paymentRouter };
 }
 
 async function testCCIPSubscription(
   sourceNetwork: SupportedNetworks,
   targetNetwork: SupportedNetworks,
   chowliveRoom: ChowliveRoom,
-  paymentReceiver: PaymentReceiver,
   paymentRouter: PaymentRouter
 ) {
-  console.log("Starting Cross-Chain Subscription Test");
+  console.log(bold(cyan("\n🔗 Starting Cross-Chain Subscription Test")));
 
-  const account = getAccount(sourceNetwork);
-  const intersectWallet = getWallet(
+  const account = getAccount();
+  const baseSepoliaWallet = getWallet(
     null,
-    intersectTestnet.rpcUrls.default.http[0]
+    baseSepolia.rpcUrls.default.http[0]
   );
+  const sepoliaWallet = getWallet(sourceNetwork);
 
-  // Create a room on Intersect
-  const roomCreationFee = ethers.utils.parseEther("1");
-  const subscriptionFee = ethers.utils.parseEther("1");
-  const { ccipBnM } = getDummyTokensFromNetwork(sourceNetwork);
-  const receiver = getDummyTokensFromNetwork(targetNetwork);
+  const { ccipBnM: sourceBnM } = getDummyTokensFromNetwork(sourceNetwork);
+  const { ccipBnM: targetBnM } = getDummyTokensFromNetwork(targetNetwork);
+
+  console.log(blue("\n📊 Token Addresses:"));
+  console.log(`   Source (Sepolia) BnM: ${sourceBnM}`);
+  console.log(`   Target (Base Sepolia) BnM: ${targetBnM}`);
+
+  const roomCreationFee = ethers.utils.parseEther("0.0001");
+  const subscriptionFee = ethers.utils.parseEther("0.001");
+
+  console.log(blue("\n🏗️ Creating a room on Base Sepolia..."));
   const createRoomTx = await chowliveRoom
-    .connect(intersectWallet)
-    .createRoom(false, subscriptionFee, receiver.ccipBnM, {
+    .connect(baseSepoliaWallet)
+    .createRoom(false, subscriptionFee, targetBnM, {
       value: roomCreationFee,
       gasLimit: 3000000,
     });
   const createRoomReceipt = await createRoomTx.wait();
-
   const roomId = createRoomReceipt.events!.find(
     (e) => e.event === "RoomCreated"
   )!.args!.roomId;
+  console.log(green(`✅ Room created with ID: ${bold(roomId)}`));
 
-  console.log(`Room created on Intersect with ID: ${roomId}`);
-
-  // Request CCIP tokens from faucet on Sepolia
-  const targetAmount = ethers.utils.parseEther("2");
-  await requestTokensFromFaucet(sourceNetwork, targetAmount as any);
-
-  // Get token contract and check balance
-  const bnmToken = ERC20__factory.connect(ccipBnM, getWallet(sourceNetwork));
+  console.log(blue("\n💧 Requesting tokens from faucet..."));
+  await requestTokensFromFaucet(sourceNetwork);
+  const bnmToken = ERC20__factory.connect(sourceBnM, sepoliaWallet);
   const bnmBalance = await bnmToken.balanceOf(account.address);
-  console.log("BnM Token balance:", ethers.utils.formatEther(bnmBalance));
+  console.log(
+    green(
+      `✅ BnM Token balance on Sepolia: ${bold(
+        ethers.utils.formatEther(bnmBalance)
+      )}`
+    )
+  );
 
-  // Approve tokens for the router
-  await bnmToken.approve(paymentRouter.address, subscriptionFee).then(wait);
+  console.log(blue("\n👍 Approving tokens for the router on Sepolia..."));
+  await bnmToken
+    .connect(sepoliaWallet)
+    .approve(paymentRouter.address, subscriptionFee)
+    .then(wait);
+  console.log(green("✅ Token approval successful"));
 
-  // Get message cost and send cross-chain payment
+  console.log(blue("\n💰 Calculating message cost..."));
   const targetConfig = getNetworkConfig(targetNetwork);
   const messageCost = await paymentRouter.quoteCrossChainMessage(
     targetConfig.chainSelector,
     0,
     subscriptionFee
   );
-  console.log("Message cost:", ethers.utils.formatEther(messageCost));
+  console.log(
+    green(`✅ Message cost: ${bold(ethers.utils.formatEther(messageCost))} ETH`)
+  );
 
   const messageCostWithBuffer =
     (BigInt(messageCost.toString()) * BigInt(110)) / BigInt(100);
-
   const guestListener = ethers.utils.getAddress(
     "0xf2750684eB187fF9f82e2F980f6233707eF5768C"
   );
 
-  const sendPaymentTx = await paymentRouter.sendPayment(
-    guestListener,
-    roomId,
-    subscriptionFee,
-    0,
-    {
+  console.log(blue("\n🚀 Initiating cross-chain subscription..."));
+  const sendPaymentTx = await paymentRouter
+    .connect(sepoliaWallet)
+    .subscribeToCrossChainRoom(guestListener, roomId, subscriptionFee, 0, {
       value: messageCostWithBuffer,
       gasLimit: 500000,
-    }
-  );
+    });
   const sendPaymentReceipt = await sendPaymentTx.wait();
 
   const paymentSentEvent = sendPaymentReceipt.events?.find(
     (e) => e.event === "PaymentSent"
   );
-
   if (paymentSentEvent && paymentSentEvent.args) {
     const messageId = paymentSentEvent.args.messageId;
-    console.log("Message ID:", messageId);
+    console.log(
+      green("\n✅ Cross-chain subscription payment sent successfully")
+    );
+    console.log(yellow(`ℹ️ Message ID: ${messageId}`));
     const ccipExplorerUrl = `https://ccip.chain.link/msg/${messageId}`;
-    console.log("Cross-chain subscription payment sent successfully");
-    console.log("CCIP Explorer URL:", ccipExplorerUrl);
+    console.log(magenta(bold("\n🔗 CCIP Explorer URL:")));
+    console.log(magenta(bold(ccipExplorerUrl)));
+    console.log(
+      yellow(
+        "\nPlease check the CCIP Explorer URL to confirm the transaction status."
+      )
+    );
   } else {
-    console.log("PaymentSent event not found or missing args");
+    console.log(red("❌ PaymentSent event not found or missing args"));
   }
-
-  await waitForFinality();
-
-  // Verify subscription on Intersect
-  const subscriptions = await chowliveRoom
-    .connect(intersectWallet)
-    .getUserSubscribedRooms(guestListener);
-
-  console.log("Subscriptions found for user:", subscriptions);
 }
 
 async function main() {
-  console.log("Starting Cross-Chain Subscription Test for Chowlive");
+  console.log(
+    bold(cyan("🚀 Starting Cross-Chain Subscription Test for Chowlive"))
+  );
 
   const sourceNetwork = SupportedNetworks.ETHEREUM_SEPOLIA;
-  const targetNetwork = SupportedNetworks.AVALANCHE_FUJI;
+  const targetNetwork = SupportedNetworks.BASE_SEPOLIA;
 
   try {
-    const { chowliveRoom, paymentReceiver, paymentRouter } =
-      await setupEnvironment(sourceNetwork, targetNetwork);
-
+    const { chowliveRoom, paymentRouter } = await setupEnvironment(
+      sourceNetwork,
+      targetNetwork
+    );
     await testCCIPSubscription(
       sourceNetwork,
       targetNetwork,
       chowliveRoom,
-      paymentReceiver,
       paymentRouter
     );
-    console.log("Cross-chain subscription test completed successfully");
+    console.log(
+      bold(green("\n✅ Cross-chain subscription test completed successfully"))
+    );
+    console.log(
+      yellow("Please check the CCIP Explorer URL above for final confirmation.")
+    );
   } catch (error) {
     console.error(
-      "An error occurred during the cross-chain subscription test:"
+      red("\n❌ An error occurred during the cross-chain subscription test:")
     );
     console.error(error);
   }
 }
 
 main().catch((error) => {
-  console.error("Unhandled error in main function:");
+  console.error(red("\n❌ Unhandled error in main function:"));
   console.error(error);
   process.exit(1);
 });

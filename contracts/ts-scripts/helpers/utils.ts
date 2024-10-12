@@ -1,13 +1,14 @@
+//utils.ts
+
 import { Contract, ethers } from "ethers";
 import { readFileSync, writeFileSync } from "fs";
 import { networkConfigs, SupportedNetworks } from "./config";
 import {
   ChowliveRoom__factory,
-  ChowlivePaymentReceiver__factory,
   ChowlivePaymentRouter__factory,
 } from "../ethers-contracts";
 import "dotenv/config";
-// import { createWalletClient, http } from "viem";
+
 import { privateKeyToAccount } from "viem/accounts";
 import { Chain } from "viem";
 
@@ -34,7 +35,7 @@ export function getWallet(
 }
 
 // for VIEM Account
-export function getAccount(network: SupportedNetworks) {
+export function getAccount() {
   if (!process.env.PRIVATE_KEY) {
     throw Error(
       "No private key provided (use the PRIVATE_KEY environment variable)"
@@ -84,16 +85,6 @@ export async function getChowliveRoom(network: Chain) {
   );
 }
 
-export async function getPaymentReceiver(network: SupportedNetworks) {
-  const deployed = (await loadDeployedAddresses()).paymentReceiver[network];
-  if (!deployed) {
-    throw new Error(
-      `No deployed PaymentReceiver on network ${SupportedNetworks[network]}`
-    );
-  }
-  return ChowlivePaymentReceiver__factory.connect(deployed, getWallet(network));
-}
-
 export async function getPaymentRouter(network: SupportedNetworks) {
   const deployed = (await loadDeployedAddresses()).paymentRouter[network];
   if (!deployed) {
@@ -106,10 +97,7 @@ export async function getPaymentRouter(network: SupportedNetworks) {
 
 export const wait = (tx: ethers.ContractTransaction) => tx.wait();
 
-export async function requestTokensFromFaucet(
-  network: SupportedNetworks,
-  targetAmount: ethers.BigNumber
-) {
+export async function requestTokensFromFaucet(network: SupportedNetworks) {
   const config = networkConfigs[network];
   if (!config.ccipBnMAddress) {
     throw new Error(
@@ -132,7 +120,7 @@ export async function requestTokensFromFaucet(
   let loopCount = 0;
   const maxLoops = 10;
 
-  while (amount.lt(targetAmount) && loopCount < maxLoops) {
+  while (amount.lt(2) && loopCount < maxLoops) {
     console.log(
       `Current balance: ${ethers.utils.formatEther(
         amount
@@ -165,7 +153,7 @@ export async function setRelationshipsVerified(
   await storeDeployedAddresses(deployed);
 }
 
-export async function withdrawPEARL(chowliveRoom: Contract, network: Chain) {
+export async function withdrawEth(chowliveRoom: Contract, network: Chain) {
   const rpc = network.rpcUrls.default.http[0];
   const signer = getWallet(null, rpc);
   const initialBalance = await signer.getBalance();
@@ -173,29 +161,29 @@ export async function withdrawPEARL(chowliveRoom: Contract, network: Chain) {
   console.log(
     "Initial deployer balance:",
     ethers.utils.formatEther(initialBalance),
-    "PEARL"
+    "ETH"
   );
-  const withdrawTx = await chowliveRoom.connect(signer).withdrawPEARL();
+  const withdrawTx = await chowliveRoom.connect(signer).withdrawEth();
   await withdrawTx.wait();
 
   const finalBalance = await signer.getBalance();
   console.log(
     "Final deployer balance:",
     ethers.utils.formatEther(finalBalance),
-    "PEARL"
+    "ETH"
   );
 
   const difference = finalBalance.sub(initialBalance);
-  console.log("PEARL withdrawn:", ethers.utils.formatEther(difference));
+  console.log("ETH withdrawn:", ethers.utils.formatEther(difference));
 }
 
 export async function waitForFinality() {
   return new Promise<void>((resolve) => {
-    console.log("Waiting for 1 minute to ensure finality...");
+    console.log("Waiting for 20 seconds to ensure finality...");
     const startTime = Date.now();
     const interval = setInterval(() => {
       const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
-      const remainingSeconds = 60 - elapsedSeconds;
+      const remainingSeconds = 20 - elapsedSeconds;
       console.log(`${remainingSeconds} seconds remaining...`);
     }, 5000); // Log every 5 seconds
 
@@ -203,7 +191,7 @@ export async function waitForFinality() {
       clearInterval(interval);
       console.log("Finality period complete.");
       resolve();
-    }, 60000); // 1 minute in milliseconds
+    }, 20000); // 20 seconds in milliseconds
   });
 }
 
@@ -212,7 +200,6 @@ export default {
   loadDeployedAddresses,
   storeDeployedAddresses,
   getChowliveRoom,
-  getPaymentReceiver,
   getPaymentRouter,
   wait,
   requestTokensFromFaucet,

@@ -1,26 +1,27 @@
 import { SupportedNetworks, getNetworkConfig } from "./config";
 import {
-  getAccount,
   getWallet,
   loadDeployedAddresses,
   storeDeployedAddresses,
-  wait,
 } from "./utils";
 import {
   ChowliveRoom__factory,
-  ChowlivePaymentReceiver__factory as PaymentReceiver__factory,
   ChowlivePaymentRouter__factory as PaymentRouter__factory,
 } from "../ethers-contracts";
 import { Chain, parseEther } from "viem";
 
 export async function deployChowliveRoom(network: Chain) {
-  const rpc =  network.rpcUrls.default.http[0];
+  const rpc = network.rpcUrls.default.http[0];
+  const signer = getWallet(null, rpc);
+  const roomCreationFee = parseEther("0.0001"); // 0.0001 ETH for room creation
 
-  const signer = getWallet(null,rpc);
-  const roomCreationFee = parseEther("1"); // 1 PEARL for room creation
+  // Get the CCIP router address for Base Sepolia
+  const baseSepoliaConfig = getNetworkConfig(SupportedNetworks.BASE_SEPOLIA);
+  const ccipRouterAddress = baseSepoliaConfig.routerAddress;
 
   const chowliveRoom = await new ChowliveRoom__factory(signer).deploy(
-    roomCreationFee
+    roomCreationFee,
+    ccipRouterAddress
   );
   await chowliveRoom.deployed();
 
@@ -34,32 +35,6 @@ export async function deployChowliveRoom(network: Chain) {
   await storeDeployedAddresses(deployed);
 
   return chowliveRoom;
-}
-
-export async function deployPaymentReceiver(
-  network: SupportedNetworks,
-  chowliveRoomAddress: string
-) {
-  const config = getNetworkConfig(network);
-  const signer = getWallet(network);
-
-  const paymentReceiver = await new PaymentReceiver__factory(signer).deploy(
-    config.ccipBnMAddress,
-    chowliveRoomAddress,
-    config.routerAddress
-  );
-  await paymentReceiver.deployed();
-
-  console.log(
-    `PaymentReceiver deployed to ${paymentReceiver.address} on network ${SupportedNetworks[network]}`
-  );
-
-  const deployed = await loadDeployedAddresses();
-  deployed.paymentReceiver = deployed.paymentReceiver || {};
-  deployed.paymentReceiver[network] = paymentReceiver.address;
-  await storeDeployedAddresses(deployed);
-
-  return paymentReceiver;
 }
 
 export async function deployPaymentRouter(
@@ -94,6 +69,5 @@ export async function deployPaymentRouter(
 
 export default {
   deployChowliveRoom,
-  deployPaymentReceiver,
   deployPaymentRouter,
 };

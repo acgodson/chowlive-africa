@@ -3,14 +3,15 @@
   "type": "module",
   "scripts": {
     "build": "npm install; forge build; npm run typechain",
-    "test-subnet": "tsx ./ts-scripts/SubnetTest.ts",
-    "test-ccip": "tsx ./ts-scripts/CCIPTest.ts",
-    "typechain": "typechain --target ethers-v5 --out-dir ts-scripts/ethers-contracts './out/{ChowliveRoom,ChowlivePaymentRouter,ChowlivePaymentReceiver,Mock_Token}.sol/*.json'"
+    "base-test": "tsx ./ts-scripts/BaseTest.ts",
+    "ccip-test": "tsx ./ts-scripts/CCIPTest.ts",
+    "typechain": "typechain --target ethers-v5 --out-dir ts-scripts/ethers-contracts './out/{ChowliveRoom,ChowlivePaymentRouter,Mock_Token}.sol/*.json'"
   },
   "dependencies": {
     "@ethsign/sign-protocol-evm": "^1.1.1",
     "@ethsign/sp-sdk": "^0.7.3",
     "@typechain/ethers-v5": "^11.1.2",
+    "colorette": "^2.0.20",
     "dotenv": "^16.4.5",
     "ethers": "5.7.2",
     "ts-node": "^10.9.1",
