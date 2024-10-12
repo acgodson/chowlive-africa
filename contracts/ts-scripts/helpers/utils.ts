@@ -1,5 +1,3 @@
-//utils.ts
-
 import { Contract, ethers } from "ethers";
 import { readFileSync, writeFileSync } from "fs";
 import { networkConfigs, SupportedNetworks } from "./config";

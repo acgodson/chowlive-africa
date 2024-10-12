@@ -1,5 +1,3 @@
-// config.ts
-
 export enum SupportedNetworks {
   BASE_SEPOLIA,
   ETHEREUM_SEPOLIA,
