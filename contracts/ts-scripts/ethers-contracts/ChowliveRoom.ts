@@ -58,7 +58,7 @@ export declare namespace Client {
   };
 }
 
-export declare namespace ChowliveRoom {
+export declare namespace IChowliveRoom {
   export type RoomStruct = {
     id: BigNumberish;
     subscriptionFee: BigNumberish;
@@ -89,7 +89,6 @@ export interface ChowliveRoomInterface extends utils.Interface {
   functions: {
     "DEFAULT_ADMIN_ROLE()": FunctionFragment;
     "MANAGER_ROLE()": FunctionFragment;
-    "SUBSCRIPTION_PERIOD()": FunctionFragment;
     "approve(address,uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "cancelSubscription(uint256)": FunctionFragment;
@@ -133,7 +132,6 @@ export interface ChowliveRoomInterface extends utils.Interface {
     nameOrSignatureOrTopic:
       | "DEFAULT_ADMIN_ROLE"
       | "MANAGER_ROLE"
-      | "SUBSCRIPTION_PERIOD"
       | "approve"
       | "balanceOf"
       | "cancelSubscription"
@@ -179,10 +177,6 @@ export interface ChowliveRoomInterface extends utils.Interface {
   ): string;
   encodeFunctionData(
     functionFragment: "MANAGER_ROLE",
-    values?: undefined
-  ): string;
-  encodeFunctionData(
-    functionFragment: "SUBSCRIPTION_PERIOD",
     values?: undefined
   ): string;
   encodeFunctionData(
@@ -325,10 +319,6 @@ export interface ChowliveRoomInterface extends utils.Interface {
   ): Result;
   decodeFunctionResult(
     functionFragment: "MANAGER_ROLE",
-    data: BytesLike
-  ): Result;
-  decodeFunctionResult(
-    functionFragment: "SUBSCRIPTION_PERIOD",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
@@ -657,8 +647,6 @@ export interface ChowliveRoom extends BaseContract {
 
     MANAGER_ROLE(overrides?: CallOverrides): Promise<[string]>;
 
-    SUBSCRIPTION_PERIOD(overrides?: CallOverrides): Promise<[BigNumber]>;
-
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -699,7 +687,7 @@ export interface ChowliveRoom extends BaseContract {
     getRoomDetails(
       roomId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<[ChowliveRoom.RoomStructOutput]>;
+    ): Promise<[IChowliveRoom.RoomStructOutput]>;
 
     getRouter(overrides?: CallOverrides): Promise<[string]>;
 
@@ -855,8 +843,6 @@ export interface ChowliveRoom extends BaseContract {
 
   MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-  SUBSCRIPTION_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
   approve(
     to: string,
     tokenId: BigNumberish,
@@ -897,7 +883,7 @@ export interface ChowliveRoom extends BaseContract {
   getRoomDetails(
     roomId: BigNumberish,
     overrides?: CallOverrides
-  ): Promise<ChowliveRoom.RoomStructOutput>;
+  ): Promise<IChowliveRoom.RoomStructOutput>;
 
   getRouter(overrides?: CallOverrides): Promise<string>;
 
@@ -1044,8 +1030,6 @@ export interface ChowliveRoom extends BaseContract {
 
     MANAGER_ROLE(overrides?: CallOverrides): Promise<string>;
 
-    SUBSCRIPTION_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -1086,7 +1070,7 @@ export interface ChowliveRoom extends BaseContract {
     getRoomDetails(
       roomId: BigNumberish,
       overrides?: CallOverrides
-    ): Promise<ChowliveRoom.RoomStructOutput>;
+    ): Promise<IChowliveRoom.RoomStructOutput>;
 
     getRouter(overrides?: CallOverrides): Promise<string>;
 
@@ -1378,8 +1362,6 @@ export interface ChowliveRoom extends BaseContract {
 
     MANAGER_ROLE(overrides?: CallOverrides): Promise<BigNumber>;
 
-    SUBSCRIPTION_PERIOD(overrides?: CallOverrides): Promise<BigNumber>;
-
     approve(
       to: string,
       tokenId: BigNumberish,
@@ -1567,10 +1549,6 @@ export interface ChowliveRoom extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     MANAGER_ROLE(overrides?: CallOverrides): Promise<PopulatedTransaction>;
-
-    SUBSCRIPTION_PERIOD(
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
 
     approve(
       to: string,

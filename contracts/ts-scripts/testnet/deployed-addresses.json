@@ -1,10 +1,10 @@
 {
   "chowliveRoom": {
-    "84532": "0x0148E3A398678179be8B795725a2013eBbBD796F"
+    "84532": "0xF9e52Fe3b193F93eE6594D243B77bea261F7E505"
   },
   "paymentRouter": {
-    "1": "0xBBCE884e234b40F591CC4009c4F15f72d89Ec4e2"
+    "1": "0x87CF4A0614183c1dA0858B5FaB68B39BD39fB8f1"
   },
   "erc20s": {},
-  "relationshipsVerified": false
+  "relationshipsVerified": true
 }
