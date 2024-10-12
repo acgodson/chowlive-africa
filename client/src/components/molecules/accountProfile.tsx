@@ -3,13 +3,13 @@ import { useTheme } from 'next-themes';
 import { FiCheck, FiCopy, FiSettings } from 'react-icons/fi';
 import { useAuthContext } from '@/lib/AuthProvider';
 import { truncateAddress } from '@/util/index';
-import { createPublicClient } from 'viem';
-import { useIntersectReadOnly } from 'src/hooks/useIntersectReadOnly';
+import { useBaseReadOnly } from 'src/hooks/useBaseReadOnly';
 
 const networks = [
+  { id: 'base', name: 'Base Sepolia', chainId: '0x14a33', nativeCurrency: 'ETH' },
   { id: 'sepolia', name: 'Sepolia', chainId: '0xaa36a7', nativeCurrency: 'ETH' },
+  { id: 'optimism', name: 'Optimism Sepolia', chainId: '0xaa37dc', nativeCurrency: 'ETH' },
   { id: 'avalanche', name: 'Avalanche Fuji Testnet', chainId: '0xa869', nativeCurrency: 'AVAX' },
-  // { id: 'intersect', name: 'Intersect Testnet', chainId: '0x64c', nativeCurrency: 'Pearl' },
 ];
 
 const AccountProfile = () => {
@@ -27,16 +27,13 @@ const AccountProfile = () => {
   const [chowLiveBalance, setChowLiveBalance] = useState('0');
   const [creatorEarnings, setCreatorEarnings] = useState('0');
   const [copied, setCopied] = useState(false);
-  const { intersectBalance } = useIntersectReadOnly();
-
-
+  const { baseBalance } = useBaseReadOnly();
 
   const handleNetworkChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const network = networks.find((n) => n.id === e.target.value);
     if (network) {
       setSelectedNetwork(network);
-      await switchNetwork(network.id as 'sepolia' | 'avalanche' | 'intersect');
-
+      await switchNetwork(network.id as 'base' | 'sepolia' | 'optimisim' | 'avalanche');
       // TODO: Implement network switching logic here for changing balances and co
     }
   };
@@ -117,10 +114,10 @@ const AccountProfile = () => {
 
             <div className='p-4 h-full bg-[#FCEFDC] dark:bg-[#2A2F3A] bg-opacity-20 dark:bg-opacity-40 rounded-lg border border-[#CB302B] border-opacity-20 dark:border-opacity-10'>
               <h4 className='font-medium text-[#CB302B] dark:text-[#FF8080]'>
-                Creator Credits <span className='text-sm font-lighter opacity-50'>Intersect </span>
+                Creator Credits <span className='text-sm font-lighter opacity-50'>Base </span>
               </h4>
               <p className='text-2xl font-bold text-[#541413] dark:text-[#E6D5C0]'>
-                {intersectBalance} Pearl
+                {baseBalance} Pearl
               </p>
               <button className='mt-2 px-4 py-2 bg-gradient-to-r from-[#CB302B] to-[#541413] text-white rounded hover:from-[#541413] hover:to-[#CB302B] transition-all duration-300 ease-in-out'>
                 Faucet

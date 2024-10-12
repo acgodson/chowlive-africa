@@ -41,13 +41,13 @@ export default function CreateRoomButton() {
 
   const visibility = watch('visibility');
 
-  const createRoomOnIntersect = async (isPublic: boolean, price: string | null) => {
+  const createRoomOnBase = async (isPublic: boolean, price: string | null) => {
     if (!web3auth || !web3auth.provider) {
       console.log('Web3Auth not initialized');
       return;
     }
     // switch chain to in tersect
-    await switchNetwork('intersect');
+    await switchNetwork('base');
 
     await wait5Seconds();
 
@@ -80,7 +80,7 @@ export default function CreateRoomButton() {
     console.log('room will be private', price);
 
     try {
-      const roomID = await createRoomOnIntersect(isPrivate, price);
+      const roomID = await createRoomOnBase(isPrivate, price);
       console.log('created room is: ', Number(roomID));
       // save the roomID on the firestore
       if (!Number(roomID)) {

@@ -2,32 +2,12 @@ import { useEffect, useState } from 'react';
 import { createPublicClient, defineChain, formatEther, http, parseEther } from 'viem';
 import { useAuthContext } from '@/lib/AuthProvider';
 import chowliveRoomABI from '../util/abis/ChowliveRoom.json';
+import { baseSepolia } from 'viem/chains';
 
-export const intersectTestnet = defineChain({
-  id: 1612,
-  name: 'Intersect Testnet',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Pearl',
-    symbol: 'Pearl',
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://subnets.avax.network/pearl/testnet/rpc'],
-    },
-  },
-  blockExplorers: {
-    default: {
-      name: 'Explorer',
-      url: 'https://subnets-test.avax.network/intersect/',
-    },
-  },
-});
-
-export const useIntersectReadOnly = () => {
+export const useBaseReadOnly = () => {
   const [fetching, setFetching] = useState(true);
   const { address } = useAuthContext();
-  const [intersectBalance, setIntersectBalance] = useState<string | null>(null);
+  const [baseBalance, setBaseBalance] = useState<string | null>(null);
 
   useEffect(() => {
     const getBalance = async () => {
@@ -36,13 +16,13 @@ export const useIntersectReadOnly = () => {
       }
       try {
         const client = createPublicClient({
-          chain: intersectTestnet,
+          chain: baseSepolia,
           transport: http(),
         });
         const balance = await client.getBalance({ address: address as `0x${string}` });
-        console.log('intersect balance', balance);
+        console.log('base balance', balance);
         const formatted = formatEther(balance);
-        setIntersectBalance(parseFloat(formatted).toFixed(3).toString());
+        setBaseBalance(parseFloat(formatted).toFixed(3).toString());
         setFetching(false);
       } catch (e) {
         alert(e);
@@ -53,7 +33,7 @@ export const useIntersectReadOnly = () => {
     if (address && fetching) {
       getBalance();
     }
-  }, [address, fetching, setIntersectBalance]);
+  }, [address, fetching, setBaseBalance]);
 
   const fetchMySubscriptions = async () => {
     if (!address) {
@@ -61,7 +41,7 @@ export const useIntersectReadOnly = () => {
     }
     try {
       const client = createPublicClient({
-        chain: intersectTestnet,
+        chain: baseSepolia,
         transport: http(),
       });
 
@@ -85,7 +65,7 @@ export const useIntersectReadOnly = () => {
     }
     try {
       const client = createPublicClient({
-        chain: intersectTestnet,
+        chain: baseSepolia,
         transport: http(),
       });
 
@@ -104,7 +84,7 @@ export const useIntersectReadOnly = () => {
   };
 
   return {
-    intersectBalance,
+    baseBalance,
     fetchMySubscriptions,
     fetchNFTDetails,
   };

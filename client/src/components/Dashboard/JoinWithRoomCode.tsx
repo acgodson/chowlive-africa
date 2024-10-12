@@ -5,9 +5,8 @@ import { Button } from '../atoms';
 import { getDummyTokensFromNetwork, wait5Seconds } from '@/util/index';
 import EthereumRpc from '@/util/env.viem';
 import { useAuthContext } from '@/lib/AuthProvider';
-import { useIntersectReadOnly } from 'src/hooks/useIntersectReadOnly';
+import { useBaseReadOnly } from 'src/hooks/useBaseReadOnly';
 import RoomDetailsDialog from '../molecules/roomDetailsDialog';
-import { AnyMap } from 'immer/dist/internal';
 
 const JoinWithRoomCode = () => {
   const router = useRouter();
@@ -17,7 +16,7 @@ const JoinWithRoomCode = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { user, web3auth, switchNetwork } = useAuthContext();
-  const { fetchNFTDetails } = useIntersectReadOnly();
+  const { fetchNFTDetails } = useBaseReadOnly();
 
   const handleFetchDetails = async (roomId: any) => {
     setIsLoading(true);

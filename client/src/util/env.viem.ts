@@ -12,34 +12,13 @@ import {
   http,
   parseEventLogs,
 } from 'viem';
-import { sepolia, avalancheFuji } from 'viem/chains';
+import { sepolia, avalancheFuji, baseSepolia } from 'viem/chains';
 import chowliveRoomABI from './abis/ChowliveRoom.json';
 import chowliveRecieverABI from './abis/ChowlivePaymentReceiver.json';
 import { privateKeyToAccount } from 'viem/accounts';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IProvider } from '@web3auth/base';
-
-const intersect: Chain = {
-  id: 1612,
-  name: 'Intersect Testnet',
-  nativeCurrency: {
-    decimals: 18,
-    name: 'Pearl',
-    symbol: 'PEARL',
-  },
-  rpcUrls: {
-    default: {
-      http: ['https://subnets.avax.network/pearl/testnet/rpc'],
-    },
-    public: {
-      http: ['https://subnets.avax.network/pearl/testnet/rpc'],
-    },
-  },
-  blockExplorers: {
-    default: { name: 'Intersect Explorer', url: 'https://subnets-test.avax.network/intersect' },
-  },
-};
 
 export default class EthereumRpc {
   private provider: IProvider;
@@ -79,7 +58,7 @@ export default class EthereumRpc {
     this.chainConfigs = {
       '0xaa36a7': sepolia,
       '0xa869': avalancheFuji,
-      '0x64c': intersect,
+      '0x64c': baseSepolia,
     };
   }
 
@@ -158,7 +137,7 @@ export default class EthereumRpc {
   ): Promise<{ hash: `0x${string}`; roomId: bigint }> {
     try {
       const walletClient = createWalletClient({
-        chain: intersect,
+        chain: baseSepolia,
         transport: http(
           'https://testnet-pearl-c612f.avax-test.network/ext/bc/CcXVATAg76vM849mrPoTigwp48qhFiN9WCa51DBQXNGkBKZw7/rpc?token=3296aa3e491dd5d366815601cc95be7275cd293486b09fe082619750d7b38587',
           {
@@ -168,7 +147,7 @@ export default class EthereumRpc {
       });
 
       const publicClient = createPublicClient({
-        chain: intersect,
+        chain: baseSepolia,
         transport: http(
           'https://testnet-pearl-c612f.avax-test.network/ext/bc/CcXVATAg76vM849mrPoTigwp48qhFiN9WCa51DBQXNGkBKZw7/rpc?token=3296aa3e491dd5d366815601cc95be7275cd293486b09fe082619750d7b38587',
           {
@@ -213,6 +192,8 @@ export default class EthereumRpc {
         eventName: ['RoomCreated'],
         logs: receipt.logs,
       });
+
+      console.log(receipt.logs);
 
       // Find the RoomCreated event log
       const roomCreatedLog = receipt.logs.find(
@@ -357,10 +338,7 @@ export default class EthereumRpc {
   toObject(data: any) {
     // can't serialize a BigInt so this hack
     return JSON.parse(
-      JSON.stringify(
-        data,
-        (key, value) => (typeof value === 'bigint' ? value.toString() : value) // return everything else unchanged
-      )
+      JSON.stringify(data, (key, value) => (typeof value === 'bigint' ? value.toString() : value))
     );
   }
 }

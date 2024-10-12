@@ -4,32 +4,28 @@ import { getFirestoreDB } from '@/util/firebase';
 import { useAuthContext } from '@/lib/AuthProvider';
 import RoomRoll from './RoomRoll';
 import Room from '../../models/Room';
-import { useIntersectReadOnly } from 'src/hooks/useIntersectReadOnly';
-import { subscribe } from 'node:diagnostics_channel';
+import { useBaseReadOnly } from 'src/hooks/useBaseReadOnly';
 
 const OwnerRoomRoll = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [rooms, setRooms] = useState<Room[]>([]);
   const { user } = useAuthContext();
   const db = getFirestoreDB();
-  const { fetchMySubscriptions } = useIntersectReadOnly();
+  const { fetchMySubscriptions } = useBaseReadOnly();
 
   useEffect(() => {
     const fetchRooms = async () => {
       if (!user) return;
 
-      // return rooms from interesect Smart Contract
-
+      // return rooms from Base Sepolia Smart Contract
       const subs = await fetchMySubscriptions();
       console.log('subs', subs);
       // example [3,2,5,6]
-
       // nftId
       if (!subs || (subs && !subs.length)) {
         return;
       }
       console.log("let's go");
-
       setIsLoading(true);
       try {
         // Remove duplicates from subs array

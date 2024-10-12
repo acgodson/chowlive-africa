@@ -15,7 +15,7 @@ const chainConfigs = {
     chainId: '0xaa36a7',
     rpcTarget: 'https://eth-sepolia.g.alchemy.com/v2/PB4BbHeft6sndMHQG464LiXM1jl4n29m',
     displayName: 'Sepolia Testnet',
-    blockExplorerUrl: 'https://https://sepolia.etherscan.io',
+    blockExplorerUrl: 'https://sepolia.etherscan.io',
     ticker: 'ETH',
     tickerName: 'Ethereum',
   },
@@ -28,14 +28,23 @@ const chainConfigs = {
     ticker: 'AVAX',
     tickerName: 'Avalanche',
   },
-  intersect: {
+  base: {
     chainNamespace: CHAIN_NAMESPACES.EIP155,
-    chainId: '0x64c',
-    rpcTarget: 'https://subnets.avax.network/pearl/testnet/rpc',
-    displayName: 'Intersect Testnet',
-    blockExplorerUrl: 'https://subnets-test.avax.network/intersect',
-    ticker: 'Pearl',
-    tickerName: 'Pearl',
+    chainId: '0x14a33',
+    rpcTarget: 'https://sepolia.base.org',
+    displayName: 'Base Sepolia Testnet',
+    blockExplorerUrl: 'https://sepolia.basescan.org',
+    ticker: 'ETH',
+    tickerName: 'Ethereum',
+  },
+  optimism: {
+    chainNamespace: CHAIN_NAMESPACES.EIP155,
+    chainId: '0xaa37dc',
+    rpcTarget: 'https://sepolia.optimism.io',
+    displayName: 'Optimism Sepolia Testnet',
+    blockExplorerUrl: 'https://sepolia-optimism.etherscan.io',
+    ticker: 'ETH',
+    tickerName: 'Ethereum',
   },
 };
 
@@ -91,7 +100,7 @@ export const useWeb3Auth = (user: User | null) => {
     initWeb3Auth();
   }, [currentChainConfig]);
 
-  const switchNetwork = async (networkId: 'sepolia' | 'avalanche' | 'intersect') => {
+  const switchNetwork = async (networkId: 'base' | 'sepolia' | 'optimism' | 'avalanche') => {
     if (!web3auth) {
       console.log('web3auth not initialized yet');
       return;
