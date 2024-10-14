@@ -24,13 +24,13 @@ const AnimatedEqualizer = ({ barCount = 20, color = '#4CAF50' }) => {
   });
 
   return (
-    <div className='flex items-end justify-center h-20 space-x-[1px]'>
+    <div className='flex w-full bg-black items-end justify-center h-20 space-x-[1px]'>
       {bars.current.map((bar: any, index: number) => (
         <animated.div
           key={index}
           style={{
             width: `${20 / barCount}%`,
-            height: props.t.to((t) => {
+            height: props.t.to((t: any) => {
               const wave1 = Math.sin(t * bar.speed + bar.phase);
               const wave2 = Math.sin(t * bar.speed * 1.5 + bar.phase);
               const combinedWave = (wave1 + wave2) / 2;

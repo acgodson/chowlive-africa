@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import Song from '../../models/Song';
+import Song from '@/utils/models/Song';
 
 // The amount of time for realtime playback to lag behind the server queue time.
 // Useful for not cutting off the beginnings of songs.

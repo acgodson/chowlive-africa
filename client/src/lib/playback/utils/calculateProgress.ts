@@ -1,4 +1,4 @@
-import Song from 'src/models/Song';
+import Song from '@/utils/models/Song';
 
 export const calculateProgress = (song?: Song) => {
   if (!song) return 0;

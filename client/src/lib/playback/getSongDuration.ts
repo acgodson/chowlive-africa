@@ -1,4 +1,4 @@
-import Service from 'src/models/Service';
+import Service from '@/utils/models/Service';
 
 import PlaybackAPI, { PlaybackProps } from '.';
 import SpotifyAPI from '../spotify';

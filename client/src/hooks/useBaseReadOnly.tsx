@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { createPublicClient, defineChain, formatEther, http, parseEther } from 'viem';
-import { useAuthContext } from '@/lib/AuthProvider';
-import chowliveRoomABI from '../util/abis/ChowliveRoom.json';
+import { createPublicClient, formatEther, http } from 'viem';
+import { useAuthContext } from '@/providers/web3-provider';
+import chowliveRoomABI from '@/utils/helpers/abis/ChowliveRoom.json';
 import { baseSepolia } from 'viem/chains';
+
 
 export const useBaseReadOnly = () => {
   const [fetching, setFetching] = useState(true);

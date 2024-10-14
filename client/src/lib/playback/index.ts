@@ -1,5 +1,5 @@
-import type Song from 'src/models/Song';
-import { SpotifyAPI } from 'src/state/store';
+import type Song from '@/utils/models/Song';
+import { SpotifyAPI } from '@/state/store';
 
 import { getActiveService } from './getActiveService';
 import { getIsSynchronized } from './getIsSynchronized';

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Avatar as ShadcnAvatar, AvatarImage, AvatarFallback } from '../atoms/avatar';
+import { Avatar as ShadcnAvatar, AvatarImage, AvatarFallback } from './../atoms/avatar';
 
 type Props = {
   src: string;

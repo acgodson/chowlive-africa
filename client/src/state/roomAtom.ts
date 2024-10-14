@@ -1,6 +1,6 @@
 import { atom } from 'jotai';
 
-import Room from '../models/Room';
+import Room from '@/utils/models/Room';
 
 export const ROOM_EMPTY: Room = {
   id: '',

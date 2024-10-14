@@ -1,4 +1,4 @@
-import { cn } from '@/util/index';
+import { cn } from '@/utils';
 
 interface SpinnerProps extends React.HTMLAttributes<HTMLDivElement> {}
 

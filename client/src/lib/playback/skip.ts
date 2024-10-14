@@ -1,5 +1,7 @@
-import { trpcProxyClient } from 'src/server/client';
+// import { trpcProxyClient } from '@/trpc/client';
 
+
+import { trpcProxyClient } from '@/trpc/client';
 import { PlaybackProps } from '.';
 
 export const skip = async ({ song }: PlaybackProps): Promise<void> => {

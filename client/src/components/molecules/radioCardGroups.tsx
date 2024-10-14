@@ -1,9 +1,9 @@
 import React from 'react';
 
-import { Laptop, Smartphone, Speaker, Headphones } from 'lucide-react';
+import { FaLaptop, FaPhone, FaSpeakerDeck, FaHeadphones } from 'react-icons/fa';
 import { Card, CardContent } from '../atoms';
 import { Label } from '../atoms/label';
-import { cn } from '@/util/index';
+import { cn } from '@/utils';
 import { RadioGroup, RadioGroupItem } from '../atoms/radio-group';
 
 interface RadioCardGroupOption {
@@ -23,13 +23,13 @@ interface RadioCardGroupProps {
 const getDeviceIcon = (type: string) => {
   switch (type?.toLowerCase()) {
     case 'computer':
-      return Laptop;
+      return FaLaptop;
     case 'smartphone':
-      return Smartphone;
+      return FaPhone;
     case 'speaker':
-      return Speaker;
+      return FaSpeakerDeck;
     default:
-      return Headphones;
+      return FaHeadphones;
   }
 };
 

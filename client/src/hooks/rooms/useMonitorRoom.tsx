@@ -7,8 +7,8 @@ import {
   getDocs,
   onSnapshot,
 } from 'firebase/firestore';
-import { getFirestoreDB } from '@/util/firebase';
-import Room from '../../models/Room';
+import { getFirestoreDB } from '@/utils/configs/firebase-app-config';
+import Room from '@/utils/models/Room';
 import { roomAtom } from '../../state/roomAtom';
 
 const useMonitorRoom = (slug?: string): Room => {

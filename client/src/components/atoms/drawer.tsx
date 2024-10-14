@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { cn } from '@/util/index';
+import { cn } from '@/utils';
 
 interface DrawerProps {
   isOpen: boolean;

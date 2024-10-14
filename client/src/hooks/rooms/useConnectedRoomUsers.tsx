@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { ref, onValue, set, onDisconnect, serverTimestamp, Database } from 'firebase/database';
-import { useAuthContext } from '@/lib/AuthProvider';
-import { useProfileContext } from '@/lib/UserProvider';
+import { ref, onValue, set, onDisconnect, Database } from 'firebase/database';
+import { useAuthContext } from '@/providers/web3-provider';
+import { useProfileContext } from '@/providers/user-provider';
 import { getDatabase } from 'firebase/database';
+
 
 export interface ConnectedRoomUser {
   user_id: string;

@@ -1,4 +1,4 @@
-import { cn } from '@/util/index';
+import { cn } from '@/utils/';
 import * as React from 'react';
 
 interface ToastProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -8,7 +8,7 @@ interface ToastProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
-  ({ className, title, description, variant = 'default', ...props }, ref) => {
+  ({ className, title, description, variant = 'default', children, ...props }, ref) => {
     return (
       <div
         ref={ref}
@@ -20,8 +20,12 @@ const Toast = React.forwardRef<HTMLDivElement, ToastProps>(
         )}
         {...props}
       >
-        {title && <div className='mb-1 font-medium'>{title}</div>}
-        {description && <div className='text-sm opacity-90'>{description}</div>}
+        {children || (
+          <>
+            {title && <div className='mb-1 font-medium'>{title}</div>}
+            {description && <div className='text-sm opacity-90'>{description}</div>}
+          </>
+        )}
       </div>
     );
   }
@@ -47,10 +51,12 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={{ toast }}>
       {children}
-      <div className='fixed bottom-0 right-0 z-50 m-4 flex flex-col items-end space-y-4'>
-        {toasts.map((toastProps, index) => (
-          <Toast key={index} {...toastProps} />
-        ))}
+      <div className='fixed inset-0 pointer-events-none flex items-end justify-center sm:items-start sm:justify-center'>
+        <div className='flex flex-col space-y-4 p-4 max-h-screen overflow-hidden'>
+          {toasts.map((toastProps, index) => (
+            <Toast key={index} {...toastProps} />
+          ))}
+        </div>
       </div>
     </ToastContext.Provider>
   );

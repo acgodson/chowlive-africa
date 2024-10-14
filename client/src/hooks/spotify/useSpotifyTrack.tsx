@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { getDatabase, get, ref } from 'firebase/database';
-import { useAuthContext } from 'src/lib/AuthProvider';
-import useStore from 'src/state/store';
-import Song from '../../models/Song';
+import { useAuthContext } from '@/providers/web3-provider';
+import useStore from '@/state/store';
+import Song from '@/utils/models/Song';
+
 
 const useSpotifyTrack = (song?: Song) => {
   const { spotify } = useStore((store) => ({

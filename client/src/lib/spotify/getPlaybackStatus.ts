@@ -1,5 +1,4 @@
-import { PLAYBACK_STATE } from 'constants/playback';
-
+import { PLAYBACK_STATE } from '@/utils/helpers/consts';
 import { PlaybackProps } from '../playback';
 
 export const getPlaybackStatus = async ({ spotify }: PlaybackProps) => {

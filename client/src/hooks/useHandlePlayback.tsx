@@ -1,22 +1,20 @@
 import { useEffect } from 'react';
-
 import { useAtom } from 'jotai';
-
-import { useAuthContext } from '@/lib/AuthProvider';
-import { PLAYBACK_STATE } from 'constants/playback';
-import PlaybackAPI from 'src/lib/playback';
-import Song from 'src/models/Song';
-import { playbackConfigurationAtom } from 'src/state/playbackConfigurationAtom';
-import useStore from 'src/state/store';
-
+import { useAuthContext } from '@/providers/web3-provider';
+import PlaybackAPI from '@/lib/playback';
+import { PLAYBACK_STATE } from '@/utils/helpers/consts';
+import Song from '@/utils/models/Song';
+import { playbackConfigurationAtom } from '@/state/playbackConfigurationAtom';
+import useStore from '@/state/store';
 import useSongProgress from './rooms/useSongProgress';
 import { getDatabase, ref, get } from 'firebase/database';
+
 
 export default function useHandlePlayback(song?: Song) {
   const { user } = useAuthContext();
 
   const { spotify } = useStore((store) => ({
-    spotify: store.spotify
+    spotify: store.spotify,
   }));
 
   const [playbackConfiguration] = useAtom(playbackConfigurationAtom);
@@ -29,9 +27,7 @@ export default function useHandlePlayback(song?: Song) {
     }
     // Fetch the Spotify access token
     const rtdb = getDatabase();
-    const tokenSnapshot = await get(
-      ref(rtdb, `spotifyAccessToken/${user?.uid}`)
-    );
+    const tokenSnapshot = await get(ref(rtdb, `spotifyAccessToken/${user?.uid}`));
     const accessToken = await tokenSnapshot.val();
     return accessToken;
   }
@@ -51,7 +47,7 @@ export default function useHandlePlayback(song?: Song) {
       if (progress <= 10) return;
       if (song.duration_ms <= 10) return;
       if (!playbackConfiguration.linked) return;
- 
+
       const playbackPromise = PlaybackAPI.getPlaybackStatus(props);
       const isSynchronizedPromise = PlaybackAPI.getIsSynchronized(props);
 
