@@ -32,6 +32,7 @@ type AuthContextType =
       web3User: Partial<OpenloginUserInfo> | null;
       user: User | null;
       selectedNetwork: any;
+      isPreparing: boolean;
       handleNetworkChange: React.ChangeEventHandler<HTMLSelectElement>;
       signIn: () => void;
       signOut: () => void;
@@ -52,6 +53,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const pathname = usePathname();
   const router = useRouter();
   const [authState, setAuthState] = useState<string | null>(null);
+  const [isPreparing, setIsPreparing] = useState(false);
   const { user, signOut, isSessionLoading, handleSignIn } = useFirebaseAuth();
   const {
     web3User,
@@ -86,8 +88,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const signIn = useCallback(() => {
     const width = 450;
     const height = 730;
-    const left = window.screen.width / 2 - width / 2;
-    const top = window.screen.height / 2 - height / 2;
     const randomString = generateRandomString();
     const state = toHex(randomString, { size: 20 });
 
@@ -98,15 +98,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 
     // Save the current URL to localStorage before redirecting
     localStorage.setItem('redirectUrl', window.location.href);
-
     // Redirect to the Spotify auth URL in the same window
     window.location.href = spotifyAuthUrl;
-
-    // window.open(
-    //   spotifyAuthUrl,
-    //   'Spotify Login',
-    //   `width=${width},height=${height},left=${left},top=${top}`
-    // );
   }, []);
 
   const handleSpotifyCallback = useCallback(
@@ -134,6 +127,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
 
         if (data.token) {
           await handleSignIn(data.token);
+          await authenticateUser();
         } else {
           console.error('Error getting Firebase token:', data.error);
         }
@@ -141,6 +135,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         console.error('Error handling Spotify callback:', error);
       } finally {
         setAuthState(null);
+        // setIsPreparing(false);
         // Clear the query parameters
         const params = new URLSearchParams(searchParams.toString());
         params.delete('code');
@@ -190,6 +185,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     if (code && state) {
+      setIsPreparing(true);
       handleSpotifyCallback(code, state);
     }
   }, [searchParams, handleSpotifyCallback]);
@@ -214,6 +210,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         web3auth,
         loggedIn,
         selectedNetwork,
+        isPreparing,
         signIn,
         signOut,
         getUserInfo,

@@ -113,7 +113,7 @@ export default class EthereumRpc {
   }
 
   async createRoom(
-    isPublic = false,
+    isPublic: boolean,
     subscriptionFee: bigint | number,
     tokenAddress: Address
   ): Promise<{ hash: any; roomId: bigint }> {
@@ -139,7 +139,11 @@ export default class EthereumRpc {
       const data = encodeFunctionData({
         abi: chowliveRoomABI.abi,
         functionName: 'createRoom',
-        args: [isPublic, subscriptionFee, tokenAddress],
+        args: [
+          isPublic,
+          !isPublic ? 0 : subscriptionFee,
+          !isPublic ? '0x0000000000000000000000000000000000000000' : tokenAddress,
+        ],
       });
       const userOpHash = await bundlerClient.sendUserOperation({
         account,
@@ -167,7 +171,7 @@ export default class EthereumRpc {
     subscriptionFee: any
   ): Promise<string | undefined> {
     try {
-      const chain = isBased ? baseSepolia : avalancheFuji;
+      const chain = isBased ? baseSepolia : sepolia;
       const account = await this.getSmartAccount();
 
       const contractAddress = isBased
@@ -176,12 +180,13 @@ export default class EthereumRpc {
 
       if (!contractAddress) throw new Error('Contract address not found');
 
+      //Note: If subscription fee is > 0 grant erc20 approval permision.
+      // for client demo subscription fees are always set at 0
+
       const data = encodeFunctionData({
         abi: chowliveRoomABI.abi,
         functionName: isBased ? 'subscribeToRoom' : 'subscribeToCrossChainRoom',
-        args: isBased
-          ? [account.address, nftId, subscriptionFee]
-          : [account.address, nftId, subscriptionFee, 0],
+        args: isBased ? [account.address, nftId] : [account.address, nftId],
       });
 
       if (isBased) {
@@ -250,5 +255,4 @@ export default class EthereumRpc {
       throw error;
     }
   }
-
 }

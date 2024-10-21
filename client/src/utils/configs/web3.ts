@@ -1,8 +1,8 @@
 export const networks = [
   { id: 'base', name: 'Base Sepolia', chainId: '0x14a34', nativeCurrency: 'ETH' },
-  { id: 'sepolia', name: 'Sepolia', chainId: '0xaa36a7', nativeCurrency: 'ETH' },
-  { id: 'optimism', name: 'Optimism Sepolia', chainId: '0xaa37dc', nativeCurrency: 'ETH' },
-  { id: 'avalanche', name: 'Avalanche Fuji Testnet', chainId: '0xa869', nativeCurrency: 'AVAX' },
+  // { id: 'sepolia', name: 'Sepolia', chainId: '0xaa36a7', nativeCurrency: 'ETH' },
+  // { id: 'optimism', name: 'Optimism Sepolia', chainId: '0xaa37dc', nativeCurrency: 'ETH' },
+  // { id: 'avalanche', name: 'Avalanche Fuji Testnet', chainId: '0xa869', nativeCurrency: 'AVAX' },
 ];
 
 export type SupportedNetworks = 1 | 2;

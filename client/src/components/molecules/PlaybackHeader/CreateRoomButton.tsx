@@ -19,8 +19,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/molecules/Room/radioGro
 import EthereumRpc from '@/lib/web3-rpc/';
 import { wait5Seconds } from '@/utils';
 import { getDummyTokensFromNetwork } from '@/utils/configs/web3';
-import { parseEther } from 'viem';
 import { trpc } from '@/trpc/client';
+import { parseEther } from 'viem';
 
 export default function CreateRoomButton() {
   const router = useRouter();
@@ -43,7 +43,7 @@ export default function CreateRoomButton() {
     defaultValues: {
       name: profile?.displayName ? `${profile.displayName}'s Room` : 'My New Room',
       visibility: 'public',
-      price: '',
+      price: '0',
     },
   });
 
@@ -56,13 +56,13 @@ export default function CreateRoomButton() {
     }
     // switch chain to base
     await switchNetwork('base');
-
     await wait5Seconds();
 
     const rpc = new EthereumRpc(web3auth.provider);
     // will change to base network later
     const receiver = getDummyTokensFromNetwork(2);
-
+    console.log(isPublic);
+  
     try {
       console.log(receiver.ccipBnM, price, isPublic);
 
@@ -86,11 +86,11 @@ export default function CreateRoomButton() {
 
     setIsCreatingRoom(true);
     setError(null);
-    const isPrivate = visibility === 'private';
+    const isPublic = visibility === 'public';
     console.log('room will be private', price);
 
     try {
-      const roomID = await createRoomOnBase(isPrivate, price);
+      const roomID = await createRoomOnBase(isPublic, price);
       console.log('created room is: ', Number(roomID));
       // save the roomID on the firestore
       if (!Number(roomID)) {
@@ -100,7 +100,7 @@ export default function CreateRoomButton() {
       const room = await createRoom({
         name,
         nftId: Number(roomID),
-        isPublic: visibility === 'public',
+        isPublic: isPublic,
         creator_id: profile.id,
       });
 
@@ -205,7 +205,8 @@ export default function CreateRoomButton() {
                   className='bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                 />
                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Set the cost in USDC for users to join this private room (e.g., 0.001)
+                  Set the cost in USDC for users to join this private room (you can set intitial
+                  cost at 0)
                 </p>
                 {errors.price && (
                   <p className='text-red-500 text-sm mt-1'>{errors.price.message}</p>

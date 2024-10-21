@@ -41,7 +41,7 @@ const JoinWithRoomCode = () => {
 
     setIsLoading(true);
     try {
-      await switchNetwork('avalanche');
+      await switchNetwork('base');
       await wait5Seconds();
 
       const rpc = new EthereumRpc(web3auth.provider);
@@ -52,7 +52,7 @@ const JoinWithRoomCode = () => {
       const hash = await rpc.subscribe(true, roomDetails.id, roomDetails.subscriptionFee);
       console.log('Subscription successful, transaction hash:', hash);
 
-      alert(`Subscription successful, https://subnets-test.avax.network/c-chain/tx/${hash}`);
+      alert(`Subscription successful, https://sepolia.basescan.org/tx/${hash}`);
       // Close the dialog and potentially navigate to the room
       setIsDialogOpen(false);
       // router.push(`/rooms/${roomDetails.id}`);

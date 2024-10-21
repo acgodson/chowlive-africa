@@ -12,7 +12,7 @@ interface AuthControllerProps {
 }
 
 const AuthController: React.FC<AuthControllerProps> = ({ children }) => {
-  const { user, isLoading } = useAuthContext();
+  const { user, isLoading, isPreparing } = useAuthContext();
   const pathname = usePathname();
   const [isAllowed, setIsAllowed] = useState(true);
 
@@ -20,13 +20,17 @@ const AuthController: React.FC<AuthControllerProps> = ({ children }) => {
     if (pathname === '/' && !isLoading && !user) {
       setIsAllowed(false);
     }
-  }, [pathname, isLoading, setIsAllowed]);
+  }, [pathname, isLoading, user, setIsAllowed]);
 
   useEffect(() => {
     if (pathname.startsWith('/room') && !isAllowed) {
       setIsAllowed(true);
     }
   }, [pathname, isAllowed, setIsAllowed]);
+
+  if (isPreparing) {
+    return <LoadingScreen />;
+  }
 
   if (isLoading && !pathname.startsWith('/room')) {
     return <LoadingScreen />;

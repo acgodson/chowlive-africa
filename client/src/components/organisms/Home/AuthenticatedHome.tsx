@@ -18,9 +18,9 @@ const AuthenticatedHome = () => {
 
   // Promoted Rooms
   const rooms = [
-    { name: "Godson's room", nftId: 2, chow: 0 },
-    { name: "Bob's hangout", nftId: 12, chow: 1 },
-    // Add more rooms as needed
+    { name: "Godson's room", nftId: 10, cost: 0 },
+    { name: "Godson's latest room", nftId: 12, cost: 0 },
+    { name: "Bob's hangout", nftId: 7, cost: 0 },
   ];
 
   return (

@@ -176,9 +176,9 @@ export const useWeb3Auth = (user: User | null) => {
       //log out web3auth
       await web3auth.logout();
     }
-    localStorage.clear();
     setLoggedIn(false);
-    router.push('/');
+    localStorage.clear();
+    window.location.reload();
   };
 
   const getAccounts = async () => {

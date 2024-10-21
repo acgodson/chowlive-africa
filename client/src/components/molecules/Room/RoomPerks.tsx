@@ -33,7 +33,7 @@ const RoomPerks = ({ roomId, userId, storeOwner }: Props) => {
   return (
     <div className='w-full p-4 sm:p-6 rounded-xl bg-white bg-opacity-10 backdrop-filter backdrop-blur-lg'>
       <p className='mb-4 sm:mb-6 text-base sm:text-lg text-gray-200'>
-        Exclusive offers from {storeOwner.storeName} to room members!
+        Exclusive offers from Chowlive to room members!
       </p>
       <div className='flex flex-wrap -mx-2'>
         {items.map((item) => (
@@ -58,13 +58,17 @@ const RoomPerks = ({ roomId, userId, storeOwner }: Props) => {
                 </p>
               </div>
               <div className='flex justify-between items-center'>
-                <span className='text-xl sm:text-2xl font-bold text-white'>${item.price}</span>
+                <span className='text-xl opacity-30 sm:text-2xl font-bold text-white'>
+                  ${item.price}
+                </span>
                 <button
+                  disabled={true}
                   onClick={() => handlePurchase(item)}
-                  className='bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 sm:px-6 py-1 sm:py-2 rounded-full hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base'
+                  className='opacity-30 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 sm:px-6 py-1 sm:py-2 rounded-full hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-md hover:shadow-lg text-sm sm:text-base'
                 >
                   Claim
                 </button>
+                <p className='text-xs mt-2 italic'>coming soon</p>
               </div>
             </div>
           </motion.div>
