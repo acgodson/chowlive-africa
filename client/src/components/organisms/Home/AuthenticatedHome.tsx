@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import React, { useState } from 'react';
 
@@ -10,11 +10,8 @@ import PlaybackHeader from '@/components/molecules/PlaybackHeader/PlaybackHeader
 import OwnerRoomRoll from '@/components/molecules/RoomRolls/OwnerRoomRoll';
 import PublicRoomRoll from '@/components/molecules/RoomRolls/PublicRoomRoll';
 
-
 import MarqueeAnnouncement from '@/components/molecules/marqueeAnnoucements';
 import AccountProfile from '@/components/molecules/accountProfile';
-
-
 
 const AuthenticatedHome = () => {
   const [pageIndex, setPageIndex] = useState(0);

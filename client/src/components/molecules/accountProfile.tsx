@@ -7,7 +7,7 @@ import { useBaseReadOnly } from '@/hooks/useBaseReadOnly';
 import { networks } from '@/utils/configs/web3';
 
 const AccountProfile = () => {
-  const { theme } = useTheme();
+  const { theme, resolvedTheme } = useTheme();
   const { address } = useAuthContext();
   const { selectedNetwork, handleNetworkChange, nativeBalance } = useAuthContext();
   const [chowLiveBalance, setChowLiveBalance] = useState('0');
@@ -21,10 +21,12 @@ const AccountProfile = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const currentTheme = theme === 'system' ? resolvedTheme : theme;
+
   return (
     <div
       className={`mt-18 px-4 sm:px-16 w-full pb-12 min-h-fit ${
-        theme === 'dark'
+        currentTheme === 'dark'
           ? 'bg-gradient-to-br from-[#1a1c20] to-[#2c313c] text-gray-100'
           : 'bg-gradient-to-br from-[#F5F7FA] to-[#F9FAFB] text-gray-800'
       } rounded-lg`}
@@ -60,7 +62,7 @@ const AccountProfile = () => {
               <span className='text-sm font-lighter opacity-50'> {selectedNetwork.name}</span>
             </h4>
             <p className='text-2xl font-semibold text-[#541413] dark:text-[#E6D5C0]'>
-              {0} CHOW <span className='text-sm font-light opacity-50'> (CCIPBnM)</span>
+              {0} USDC <span className='text-sm font-light opacity-50'> (CCIPBnM)</span>
             </p>
 
             {selectedNetwork.id === 'sepolia' && (
@@ -82,7 +84,7 @@ const AccountProfile = () => {
                 Unclaimed Earnings{' '}
               </h4>
               <p className='text-2xl font-semibold text-[#541413] dark:text-[#E6D5C0]'>
-                {creatorEarnings} CHOW{' '}
+                {creatorEarnings} USDC{' '}
                 <span className='text-sm font-light opacity-50'> (CCIPBnM)</span>
               </p>
               <button className='mt-2 px-4 py-2 bg-gradient-to-r from-[#CB302B] to-[#541413] text-white rounded hover:from-[#541413] hover:to-[#CB302B] transition-all duration-300 ease-in-out'>

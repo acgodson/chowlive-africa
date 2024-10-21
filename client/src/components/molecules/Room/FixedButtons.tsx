@@ -31,7 +31,6 @@ import { sidepanelAtom } from '../../../state/sidepanelAtom';
 import SongProgress from '../SongProgress';
 import { cn } from '@/utils';
 
-
 type Props = {
   room: Room;
   song?: Song;
@@ -118,15 +117,15 @@ const FixedButtons = ({
 
   return (
     <>
-      <FloatingContainer position='tl'>
+      {/* <FloatingContainer position='tl'>
         <Link
           href='/'
           className='p-2 rounded-full hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors'
         >
           <ArrowLeftIcon className='w-5 h-5' />
         </Link>
-      </FloatingContainer>
-
+      </FloatingContainer> */}
+      {/* 
       <FloatingContainer position='t'>
         <CircularButton onClick={onCopy} ariaLabel={hasCopied ? 'Copied!' : 'Copy room code'}>
           {hasCopied ? <CheckIcon className='w-5 h-5' /> : <CopyIcon className='w-5 h-5' />}
@@ -135,8 +134,8 @@ const FixedButtons = ({
         <CircularButton onClick={handleColorMode} ariaLabel='Toggle theme'>
           {theme === 'light' ? <MoonIcon className='w-5 h-5' /> : <SunIcon className='w-5 h-5' />}
         </CircularButton>
-      </FloatingContainer>
-
+      </FloatingContainer> */}
+      {/* 
       <FloatingContainer position='tr2'>
         <div className='flex flex-row-reverse items-center justify-center w-full'>
           {hiddenUsers.length > 0 && (
@@ -153,17 +152,17 @@ const FixedButtons = ({
             </div>
           ))}
         </div>
-      </FloatingContainer>
+      </FloatingContainer> */}
 
       {isAuthenticated && (
         <>
-          <FloatingContainer position='tr'>
+          {/* <FloatingContainer position='tr'>
             <CircularButton onClick={handleQueue} ariaLabel='Queue song'>
               <PlusIcon className='w-5 h-5' />
             </CircularButton>
-          </FloatingContainer>
+          </FloatingContainer> */}
 
-          <FloatingContainer position='bl'>
+          {/* <FloatingContainer position='bl'>
             <button
               onClick={handleDevices}
               aria-label='Choose Spotify playback device'
@@ -183,11 +182,11 @@ const FixedButtons = ({
               )}
             </button>
             <SongControl song={song} />
-          </FloatingContainer>
+          </FloatingContainer> */}
 
-          <FloatingContainer position='b'>
+          {/* <FloatingContainer position='b'>
             <SongProgress song={song} />
-          </FloatingContainer>
+          </FloatingContainer> */}
 
           <FloatingContainer position='br'>
             <CircularButton

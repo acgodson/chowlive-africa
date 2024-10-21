@@ -205,7 +205,7 @@ export default function CreateRoomButton() {
                   className='bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                 />
                 <p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-                  Set the cost in ETH for users to join this private room (e.g., 0.001)
+                  Set the cost in USDC for users to join this private room (e.g., 0.001)
                 </p>
                 {errors.price && (
                   <p className='text-red-500 text-sm mt-1'>{errors.price.message}</p>

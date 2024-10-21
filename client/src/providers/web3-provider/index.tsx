@@ -96,11 +96,17 @@ export default function AuthProvider({ children }: PropsWithChildren) {
       FIREBASE_CONFIG.projectId
     }.cloudfunctions.net/redirect?state=${encodeURIComponent(state)}`;
 
-    window.open(
-      spotifyAuthUrl,
-      'Spotify Login',
-      `width=${width},height=${height},left=${left},top=${top}`
-    );
+    // Save the current URL to localStorage before redirecting
+    localStorage.setItem('redirectUrl', window.location.href);
+
+    // Redirect to the Spotify auth URL in the same window
+    window.location.href = spotifyAuthUrl;
+
+    // window.open(
+    //   spotifyAuthUrl,
+    //   'Spotify Login',
+    //   `width=${width},height=${height},left=${left},top=${top}`
+    // );
   }, []);
 
   const handleSpotifyCallback = useCallback(
@@ -197,7 +203,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   }, []);
 
   return (
-
     <AuthContext.Provider
       value={{
         isLoading,
@@ -224,7 +229,6 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     >
       {children}
     </AuthContext.Provider>
-  
   );
 }
 

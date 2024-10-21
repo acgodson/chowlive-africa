@@ -1,6 +1,7 @@
 import React from 'react';
-import { FiChevronDown, FiMusic } from 'react-icons/fi';
+import { FiChevronDown, FiMusic, FiLogOut } from 'react-icons/fi';
 import { useTheme } from 'next-themes';
+import * as Popover from '@radix-ui/react-popover';
 
 import useStore, { Modal } from '@/state/store';
 
@@ -25,6 +26,7 @@ import { Button } from '@/components/atoms';
 import ColorModeButton from '@/components/atoms/ColorModeButton';
 import { useProfileContext } from '@/providers/user-provider';
 import NetworkSwitcher from '../NetworkSwitcher';
+import { useAuthContext } from '@/providers/web3-provider';
 
 interface Props {
   placement?: 'top' | 'bottom';
@@ -35,11 +37,17 @@ interface Props {
 
 const PlaybackHeader = ({ placement = 'top', isHome, song, room }: Props) => {
   const { profile } = useProfileContext();
+  const { logout } = useAuthContext();
   const { handleSetModal } = useStore((store) => ({
     handleSetModal: store.handleSetModal,
   }));
 
   const { theme } = useTheme();
+
+  const handleLogout = () => {
+    console.log('Logging out...');
+    logout();
+  };
 
   return (
     <div>
@@ -65,15 +73,27 @@ const PlaybackHeader = ({ placement = 'top', isHome, song, room }: Props) => {
           </div>
         </div>
         <div className='hidden lg:flex items-center justify-center'>
-          <Button variant='ghost' className='flex items-center'>
-            <StyledAvatar
-              src={profile?.avatarUrl ?? ''}
-              name={profile?.displayName ?? ''}
-              className='w-8 h-8 mr-2'
-            />
-
-            <FiChevronDown />
-          </Button>
+          <Popover.Root>
+            <Popover.Trigger asChild>
+              <Button variant='ghost' className='flex items-center'>
+                <StyledAvatar
+                  src={profile?.avatarUrl ?? ''}
+                  name={profile?.displayName ?? ''}
+                  className='w-8 h-8 mr-2'
+                />
+                <FiChevronDown />
+              </Button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content className='bg-white dark:bg-gray-800 p-2 rounded-md shadow-md'>
+                <Button variant='ghost' onClick={handleLogout} className='w-full justify-start'>
+                  <FiLogOut className='mr-2' />
+                  Logout
+                </Button>
+                <Popover.Arrow className='fill-white dark:fill-gray-800' />
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
 
           <NetworkSwitcher />
 
@@ -87,9 +107,6 @@ const PlaybackHeader = ({ placement = 'top', isHome, song, room }: Props) => {
                   <FiMusic className='text-xl' />
                 </Button>
               </TooltipTrigger>
-              {/* <TooltipContent>
-                <p>Options and Playback</p>
-              </TooltipContent> */}
             </Tooltip>
           </TooltipProvider>
         </div>

@@ -37,6 +37,33 @@ export const wait5Seconds = () => {
   });
 };
 
+export function parseCreateRoomEvents(transactionReceipt: any) {
+  const chowliveRoomAddress = process.env.NEXT_PUBLIC_CHOWLIVE_ROOM?.toLowerCase();
+  const chowliveRoomLogs = transactionReceipt.logs.filter(
+    (log: any) => log.address.toLowerCase() === chowliveRoomAddress
+  );
+  const roomCreatedLog = chowliveRoomLogs.find((log: any) => {
+    return log.topics.length === 4;
+  });
+
+  if (roomCreatedLog) {
+    try {
+      const roomIdHex = roomCreatedLog.topics[3];
+      const roomId = BigInt(roomIdHex);
+      return {
+        hash: roomCreatedLog.transactionHash,
+        roomId: roomId,
+      };
+    } catch (error) {
+      console.error('Error parsing event data:', error);
+      return null;
+    }
+  } else {
+    console.log('No Room Created Event found in the ChowliveRoom contract logs.');
+    return null;
+  }
+}
+
 export const welcomeEmailTemplate = (userName: string, aiChatLink: string) => `
   <html>
     <head>

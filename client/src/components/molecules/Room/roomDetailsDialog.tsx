@@ -1,5 +1,11 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/atoms/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/atoms/dialog';
 import { Button } from '@/components/atoms';
 import { FiAlertCircle } from 'react-icons/fi';
 
@@ -38,7 +44,7 @@ const RoomDetailsDialog = ({ isOpen, onClose, roomDetails, onSubscribe, isLoadin
               Visibility: {roomDetails.isPublic ? 'Public' : 'Private'}
             </p>
             <p className='text-sm text-gray-600 dark:text-gray-300 mb-1'>
-              Subscription Fee: {roomDetails.subscriptionFee.toString()} CHOW
+              Subscription Fee: {roomDetails.subscriptionFee.toString()} USDC
             </p>
             <p className='text-sm text-gray-600 dark:text-gray-300'>
               Subscription Token: {roomDetails.subscriptionToken}

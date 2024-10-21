@@ -1,4 +1,4 @@
-"use client"
+'use client';
 
 import { useEffect, useState, useCallback } from 'react';
 import { Web3AuthNoModal } from '@web3auth/no-modal';
@@ -6,7 +6,8 @@ import { OpenloginAdapter, OpenloginUserInfo } from '@web3auth/openlogin-adapter
 import { WALLET_ADAPTERS, CHAIN_NAMESPACES, WEB3AUTH_NETWORK } from '@web3auth/base';
 import RPC from '@/lib/web3-rpc/';
 import { EthereumPrivateKeyProvider } from '@web3auth/ethereum-provider';
-import { User } from 'firebase/auth';
+import { getAuth, signOut, User } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 const clientId =
   'BFvFm-FPMxHmWGS33QbfrYe7-5mDOftplGzkM5y6eXRgkS6m9rkgVohkc_W2t5pVicZP2niXu3jJoI97RkWZrXw';
@@ -57,6 +58,8 @@ export const useWeb3Auth = (user: User | null) => {
   const [loggedIn, setLoggedIn] = useState(false);
   const [currentChainConfig, setCurrentChainConfig] = useState(chainConfigs.base);
   const [fetching, setFetching] = useState(true);
+  const auth = getAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const initWeb3Auth = async () => {
@@ -164,12 +167,18 @@ export const useWeb3Auth = (user: User | null) => {
   };
 
   const logout = async () => {
-    if (!web3auth) {
+    // log out firebase
+    signOut(auth);
+
+    if (!web3auth?.connected) {
       console.log('web3auth not initialized yet');
-      return;
+    } else {
+      //log out web3auth
+      await web3auth.logout();
     }
-    await web3auth.logout();
+    localStorage.clear();
     setLoggedIn(false);
+    router.push('/');
   };
 
   const getAccounts = async () => {
@@ -226,5 +235,3 @@ export const useWeb3Auth = (user: User | null) => {
     setFetching,
   };
 };
-
-

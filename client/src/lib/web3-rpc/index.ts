@@ -19,6 +19,7 @@ import { privateKeyToAccount } from 'viem/accounts';
 import chowliveRoomABI from '@/utils/helpers/abis/ChowliveRoom.json';
 
 import type { IProvider } from '@web3auth/base';
+import { parseCreateRoomEvents } from '@/utils';
 
 export default class EthereumRpc {
   private provider: IProvider;
@@ -100,18 +101,11 @@ export default class EthereumRpc {
         console.log('no account yet for balance retrieval');
         return '0';
       }
-      console.log('c chain', this.getViewChain());
-      console.log('c provider', this.provider);
-      console.log('c address', address);
-
       this.publicClient = createPublicClient({
         chain: this.getViewChain(),
         transport: custom(this.provider),
       });
-
       const balance = await this.publicClient.getBalance({ address });
-
-      console.log('c chain', balance);
       return formatEther(balance);
     } catch (error) {
       return error as string;
@@ -147,41 +141,20 @@ export default class EthereumRpc {
         functionName: 'createRoom',
         args: [isPublic, subscriptionFee, tokenAddress],
       });
-
       const userOpHash = await bundlerClient.sendUserOperation({
         account,
         calls: [
           {
             to: contractAddress,
             data,
-            value: parseEther('0'), // for testnet room creation fee is 0 ETH
+            value: parseEther('0'),
           },
         ],
       });
-
       console.log('UserOp Hash:', userOpHash);
-
-      // Wait for the transaction to be mined
-      const transactionHash = await bundlerClient.waitForUserOperationReceipt({ hash: userOpHash });
-      console.log('Transaction Hash:', transactionHash);
-
-      // Result type
-      // actualGasCost: bigint;
-      // actualGasUsed: bigint;
-      // entryPoint: Address;
-      // logs: Log<bigint, number, false>[];
-      // nonce: bigint;
-      // paymaster?: `0x${string}` | undefined;
-      // reason?: string | undefined | undefined;
-      // receipt: TransactionReceipt<...>;
-      // sender: Address;
-      // success: boolean;
-      // userOpHash: Hash;
-
-      // use transactionHash.receipts.logs or sth similar to get the events with the topic hash
-
-      // For simplicity, we're returning a dummy roomId. In a real scenario, you'd need to parse the transaction receipt for the actual roomId.
-      return { hash: transactionHash, roomId: BigInt(0) };
+      const transactionH = await bundlerClient.waitForUserOperationReceipt({ hash: userOpHash });
+      const x = await parseCreateRoomEvents(transactionH.receipt);
+      return { hash: x?.hash, roomId: x?.roomId as any };
     } catch (error) {
       console.error('Error creating room:', error);
       throw error;
@@ -277,4 +250,5 @@ export default class EthereumRpc {
       throw error;
     }
   }
+
 }
