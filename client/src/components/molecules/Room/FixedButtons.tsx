@@ -56,7 +56,7 @@ const FixedButtons = ({
   const { isAuthenticated } = useAuthContext();
   const [hasCopied, setHasCopied] = useState(false);
 
-  const host = 'https://chowlive.vercel.app';
+  const host = 'https://chowlive-africa.vercel.app';
 
   const onCopy = useCallback(() => {
     navigator.clipboard

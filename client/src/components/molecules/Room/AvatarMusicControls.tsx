@@ -67,7 +67,7 @@ const AvatarMusicControls = ({
     handleSetModal: store.handleSetModal,
   }));
 
-  const host = 'https://chowlive.vercel.app';
+  const host = 'https://chowlive-africa.vercel.app';
 
   const handleTogglePlaybackConfiguration = () =>
     setPlaybackConfiguration({
