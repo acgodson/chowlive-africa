@@ -19,6 +19,7 @@ const ChowliveLanding = () => {
 
   const [showUniting, setShowUniting] = useState(false);
   const [showSynced, setShowSynced] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const sectionRefs = useRef<(HTMLElement | null)[]>([]);
 
@@ -75,12 +76,12 @@ const ChowliveLanding = () => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY;
       const windowHeight = window.innerHeight;
-      const seamlessIntegrationPosition = 2 * windowHeight; 
+      const seamlessIntegrationPosition = 2 * windowHeight;
 
       if (scrollPosition < seamlessIntegrationPosition) {
         setActiveSection(Math.floor(scrollPosition / windowHeight));
       } else if (scrollPosition < seamlessIntegrationPosition + 2 * windowHeight) {
-        setActiveSection(2); 
+        setActiveSection(2);
       } else {
         setActiveSection(3);
       }
@@ -132,9 +133,32 @@ const ChowliveLanding = () => {
         <header className='fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-2 bg-black bg-opacity-0 backdrop-filter backdrop-blur-lg'>
           <div className="text-3xl font-bold font-['Days One'] flex items-center">
             <Image alt='chowlive-icon' height={50} width={50} src='/logo.svg' className='mr-2' />
-            Chowlive
+            <span className='hidden sm:inline'>Chowlive</span>
           </div>
-          <nav className='flex items-center space-x-4'>
+
+          {/* Mobile Menu Button */}
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className='md:hidden p-2'>
+            <svg className='w-6 h-6' fill='none' stroke='currentColor' viewBox='0 0 24 24'>
+              {isMenuOpen ? (
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M6 18L18 6M6 6l12 12'
+                />
+              ) : (
+                <path
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  strokeWidth={2}
+                  d='M4 6h16M4 12h16M4 18h16'
+                />
+              )}
+            </svg>
+          </button>
+
+          {/* Desktop Navigation */}
+          <nav className='hidden md:flex items-center space-x-4'>
             <button
               className='bg-[#1DB954] text-white px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors font-bold flex items-center'
               onClick={signIn}
@@ -144,6 +168,31 @@ const ChowliveLanding = () => {
             </button>
             <NetworkSwitcher />
           </nav>
+
+          {/* Mobile Navigation Menu */}
+          <AnimatePresence>
+            {isMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className='absolute top-full left-0 right-0 bg-black bg-opacity-95 md:hidden'
+              >
+                <div className='flex flex-col items-center space-y-4 py-4'>
+                  <button
+                    className='bg-[#1DB954] text-white px-6 py-2 rounded-full hover:bg-opacity-90 transition-colors font-bold flex items-center w-[80%]'
+                    onClick={signIn}
+                  >
+                    <FaSpotify className='mr-2' />
+                    Connect with Spotify
+                  </button>
+                  <div className='w-[80%]'>
+                    <NetworkSwitcher />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </header>
 
         <motion.section
@@ -166,7 +215,7 @@ const ChowliveLanding = () => {
                     initial='hidden'
                     animate='visible'
                     transition={{ duration: 1, type: 'spring', stiffness: 50 }}
-                    className="text-8xl font-bold font-['Days One'] mb-4 drop-shadow-lg"
+                    className="text-5xl md:text-7xl lg:text-8xl font-bold font-['Days One'] mb-4 drop-shadow-lg"
                   >
                     Uniting friends on-chain
                   </motion.h1>
@@ -181,7 +230,7 @@ const ChowliveLanding = () => {
                     animate='visible'
                     transition={{ duration: 1, delay: 0.5 }}
                   >
-                    <motion.p className='text-4xl mb-8 font-bold'>
+                    <motion.p className='text-2xl  md:text-3xl lg:text-4xl  mb-8 font-bold'>
                       Synced music playbacks and epic listening parties
                     </motion.p>
                     <motion.button
