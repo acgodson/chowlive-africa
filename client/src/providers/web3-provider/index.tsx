@@ -103,11 +103,11 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     // Redirect to the Spotify auth URL in the same window
     window.location.href = spotifyAuthUrl;
 
-    window.open(
-      spotifyAuthUrl,
-      'Spotify Login',
-      `width=${width},height=${height},left=${left},top=${top}`
-    );
+    // window.open(
+    //   spotifyAuthUrl,
+    //   'Spotify Login',
+    //   `width=${width},height=${height},left=${left},top=${top}`
+    // );
   }, []);
 
   const handleSpotifyCallback = useCallback(
