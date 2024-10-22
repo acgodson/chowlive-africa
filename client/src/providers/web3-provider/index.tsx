@@ -88,6 +88,8 @@ export default function AuthProvider({ children }: PropsWithChildren) {
   const signIn = useCallback(() => {
     const width = 450;
     const height = 730;
+    const left = window.screen.width / 2 - width / 2;
+    const top = window.screen.height / 2 - height / 2;
     const randomString = generateRandomString();
     const state = toHex(randomString, { size: 20 });
 
@@ -100,6 +102,12 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     localStorage.setItem('redirectUrl', window.location.href);
     // Redirect to the Spotify auth URL in the same window
     window.location.href = spotifyAuthUrl;
+
+    window.open(
+      spotifyAuthUrl,
+      'Spotify Login',
+      `width=${width},height=${height},left=${left},top=${top}`
+    );
   }, []);
 
   const handleSpotifyCallback = useCallback(
