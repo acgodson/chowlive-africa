@@ -124,6 +124,7 @@ export default function AuthProvider({ children }: PropsWithChildren) {
         }
 
         const data = await response.json();
+        console.log('returned token', data.token);
 
         if (data.token) {
           await handleSignIn(data.token);
@@ -186,7 +187,9 @@ export default function AuthProvider({ children }: PropsWithChildren) {
     const state = searchParams.get('state');
     if (code && state) {
       setIsPreparing(true);
-      handleSpotifyCallback(code, state);
+      if (code.length > 0) {
+        handleSpotifyCallback(code, state);
+      }
     }
   }, [searchParams, handleSpotifyCallback]);
 
