@@ -7,7 +7,7 @@ import { Firestore, getFirestore } from 'firebase/firestore';
 
 export const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyBYB3vDonVETJ8qZtxUkr0q8eSk8NYBhXk',
-  authDomain: 'chow-live.firebaseapp.com',
+  authDomain: 'chowlive-africa.vercel.app',
   databaseURL: 'https://chow-live-default-rtdb.firebaseio.com',
   projectId: 'chow-live',
   storageBucket: 'chow-live.appspot.com',
